@@ -10,7 +10,7 @@ npm run dev
 
 Le code est organisé ainsi :
 
-/!\ index.js qu'on avait dans le workshop a été remplacé par app.js + server.js
+/!\ index.js qu'on avait dans le workshop a été remplacé par db.js + server.js
 
 - server.js démarre l’API et devient le POINT D'ENTREE de notre app.
 - app.js configure les middlewares et les routes
