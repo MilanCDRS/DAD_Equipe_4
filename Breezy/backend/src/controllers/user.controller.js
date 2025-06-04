@@ -30,6 +30,6 @@ exports.createUser = async (req, res) => {
     });
   } catch (err) {
     console.error("User creation failed", err);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Server error :" + err });
   }
 };

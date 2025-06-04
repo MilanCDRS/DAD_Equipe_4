@@ -18,7 +18,7 @@ const userSchema = new mongoose.Schema(
       default: "user",
     },
     bio: { type: String, default: "" },
-    avatarUrl: { type: String, default: "" },
+    avatar: { type: String, default: "" },
     followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   },
