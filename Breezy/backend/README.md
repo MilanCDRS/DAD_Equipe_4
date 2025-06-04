@@ -1,0 +1,21 @@
+Bienvenue dans notre projet Breezy API pour le back-end.
+
+Pour commencer, installez les dépendances avec :
+npm install
+
+Personnalisez sur besoin le fichier .env avec vos variables.
+
+Lancez le serveur en mode dev :
+npm run dev
+
+Le code est organisé ainsi :
+
+/!\ index.js qu'on avait dans le workshop a été remplacé par app.js + server.js
+
+- server.js démarre l’API et devient le POINT D'ENTREE de notre app.
+- app.js configure les middlewares et les routes
+- config/db.js gère la connexion à MongoDB (dans le workshop on n'avait pas ça : c'était dans index.js)
+- models/user.model.js contient le schéma User avec les rôles
+- controllers/ gère la logique des routes
+- middlewares/
+- postman_request.mrd : pour faciliter le test de l'API , vous pouvez trouver ici des ressources à c/c dans postman
