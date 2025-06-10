@@ -33,3 +33,13 @@ exports.createUser = async (req, res) => {
     res.status(500).json({ message: "Server error :" + err });
   }
 };
+
+exports.getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find({});
+    res.status(200).json(users);
+  } catch (err) {
+    console.error("Failed to retrieve users", err);
+    res.status(500).json({ message: "Server error :" + err });
+  }
+};
