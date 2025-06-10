@@ -19,3 +19,5 @@ Le code est organisé ainsi :
 - controllers/ gère la logique des routes
 - middlewares/
 - postman_request.mrd : pour faciliter le test de l'API , vous pouvez trouver ici des ressources à c/c dans postman
+
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass

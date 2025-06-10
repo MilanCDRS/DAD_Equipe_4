@@ -12,7 +12,7 @@ const app = express();
 
 // Middlewares globaux
 app.use(cors());
-app.use(express.json()); // Pour lire les JSON dans les requêtes
+app.use("/api", express.json()); // Pour lire les JSON dans les requêtes
 
 // Routes
 app.use("/api/users", userRoutes);
