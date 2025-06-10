@@ -6,3 +6,11 @@ Créer un user : (POST) http://localhost:5000/api/users
   "password": "securepassword",
   "role": "user"
 }
+
+
+Verifier si le user est authentié : (POST) http://localhost:5000/api/users/login
+                                    (body raw) 
+{
+  "email": "cou@cou.fr",
+  "password": "coucou"
+}
