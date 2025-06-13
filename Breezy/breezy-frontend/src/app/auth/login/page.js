@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useState } from "react";
 import { useDispatch } from "react-redux";
@@ -10,9 +10,9 @@ import MyIcon from "@/app/MyIcon";
 
 export default function Login() {
   const dispatch = useDispatch();
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const router = useRouter();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -20,13 +20,16 @@ export default function Login() {
       const data = await loginUser(email, password);
       const { userId, username, role, token } = data;
 
-      dispatch(loginSuccess({
-        user: { id: userId, username, role, email },
-        token,
-      }));
-
+      dispatch(
+        loginSuccess({
+          user: { id: userId, username, role, email },
+          token,
+        })
+      );
+      console.log("Login successful:", data);
       router.push("/");
     } catch (error) {
+      console.error("Login failed:", error);
       alert("Login failed: " + (error.response?.data?.message || "Unknown error"));
     }
   };
@@ -44,7 +47,7 @@ export default function Login() {
           Send and<br />receive messages<br />in real time.
         </h1>
 
-        {/* Create Account button */}
+        {/* Create account button */}
         <Link href="/registration" className="block mb-6">
           <button className="w-full text-sm text-white bg-black rounded-full px-6 py-3">
             Create an account
@@ -60,26 +63,36 @@ export default function Login() {
 
         {/* Login form */}
         <form onSubmit={handleLogin} className="space-y-5">
-          <input
-            type="text"
-            placeholder="pseudo or email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full border-b border-[#5B5F63] placeholder-[#A2A5A9] text-black bg-transparent p-2 focus:outline-none focus:border-black"
-          />
+          <div>
+            <input
+              type="email"
+              id="email"
+              placeholder="pseudo or email"
+              className="w-full border-b border-[#5B5F63] placeholder-[#A2A5A9] text-black bg-transparent p-2 focus:outline-none focus:border-black"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
 
-          <input
-            type="password"
-            placeholder="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full border-b border-[#5B5F63] placeholder-[#A2A5A9] text-black bg-transparent p-2 focus:outline-none focus:border-black"
-          />
+          <div>
+            <input
+              type="password"
+              id="password"
+              placeholder="password"
+              className="w-full border-b border-[#5B5F63] placeholder-[#A2A5A9] text-black bg-transparent p-2 focus:outline-none focus:border-black"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
 
           <div className="text-right text-sm">
-            <Link href="#" className="text-blue-500 underline">
-              Forgotten password ?
-            </Link>
+            <i>
+              <Link href="#" className="text-blue-500 underline">
+                Forgotten password ?
+              </Link>
+            </i>
           </div>
 
           <button
