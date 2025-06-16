@@ -21,3 +21,6 @@ Le code est organisé ainsi :
 - postman_request.mrd : pour faciliter le test de l'API , vous pouvez trouver ici des ressources à c/c dans postman
 
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+
+docker compose down
+docker compose up --build
