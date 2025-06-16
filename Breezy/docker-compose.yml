@@ -17,7 +17,7 @@ services:
   auth-mongo:
     image: mongo:6.0
     ports:
-      - "27017:27017"
+      - "27020:27017"
     volumes:
       - auth-mongo-data:/data/db
     networks:
