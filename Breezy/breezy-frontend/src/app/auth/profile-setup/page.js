@@ -1,13 +1,13 @@
-'use client';
-import Link from 'next/link';
+"use client";
+import Link from "next/link";
 import MyIcon from "@/app/MyIcon";
-import { useState } from 'react';
+import { useState } from "react";
 
 export default function CompleteProfilePage() {
-  const [bio, setBio] = useState('');
-  const [profilePicture, setProfilePicture] = useState(null); // ✅ supprimé ": File | null"
+  const [bio, setBio] = useState("");
+  const [profilePicture, setProfilePicture] = useState(null);
 
-  const handleImageUpload = (e) => { // ✅ supprimé ": React.ChangeEvent<HTMLInputElement>"
+  const handleImageUpload = (e) => {
     const file = e.target.files?.[0];
     if (file) {
       setProfilePicture(file);
@@ -35,7 +35,10 @@ export default function CompleteProfilePage() {
 
         <form className="w-full space-y-8 relative" onSubmit={handleSubmit}>
           <div className="flex flex-col items-center space-y-3">
-            <label htmlFor="profile-pic-upload" className="cursor-pointer relative">
+            <label
+              htmlFor="profile-pic-upload"
+              className="cursor-pointer relative"
+            >
               <div className="w-24 h-24 bg-gray-300 rounded-full flex items-center justify-center">
                 {profilePicture ? (
                   <img
@@ -47,7 +50,9 @@ export default function CompleteProfilePage() {
                   <span className="text-white text-3xl">👤</span>
                 )}
               </div>
-              <div className="absolute bottom-0 right-0 bg-blue-500 w-6 h-6 rounded-full text-white flex items-center justify-center text-sm">+</div>
+              <div className="absolute bottom-0 right-0 bg-blue-500 w-6 h-6 rounded-full text-white flex items-center justify-center text-sm">
+                +
+              </div>
             </label>
             <input
               id="profile-pic-upload"
@@ -56,11 +61,15 @@ export default function CompleteProfilePage() {
               className="hidden"
               onChange={handleImageUpload}
             />
-            <h2 className="text-lg font-bold text-black text-center">Choose a profile picture</h2>
+            <h2 className="text-lg font-bold text-black text-center">
+              Choose a profile picture
+            </h2>
           </div>
 
           <div>
-            <h2 className="text-lg font-bold text-black mb-2">Describe yourself</h2>
+            <h2 className="text-lg font-bold text-black mb-2">
+              Describe yourself
+            </h2>
             <textarea
               value={bio}
               onChange={(e) => setBio(e.target.value)}
@@ -71,7 +80,10 @@ export default function CompleteProfilePage() {
           </div>
 
           <div className="w-full flex justify-end">
-            <button type="submit" className="text-sm text-white bg-black rounded-full px-6 py-3">
+            <button
+              type="submit"
+              className="text-sm text-white bg-black rounded-full px-6 py-3"
+            >
               Create
             </button>
           </div>

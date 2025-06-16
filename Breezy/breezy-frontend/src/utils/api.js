@@ -1,19 +1,17 @@
 import axios from "axios";
 
 const apiClient = axios.create({
-  baseURL: "http://localhost:5000/api",
+  baseURL: "http://localhost:3001/api",
   timeout: 10000, // Timeout de 10 seconds
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// Ajoute automatiquement le token à chaque requête
+// si un jour on veut stocker le token en localStorage
 apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
+  const token = window.localStorage.getItem("token");
+  if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
@@ -24,7 +22,7 @@ apiClient.interceptors.request.use((config) => {
  * @return {Promise<Object>} - Une promesse qui résout les données de l'utilisateur connecté.
  */
 export const loginUser = async (email, password) => {
-  const response = await apiClient.post("/users/login", { email, password });
+  const response = await apiClient.post("/auth/login", { email, password });
   return response.data;
 };
 

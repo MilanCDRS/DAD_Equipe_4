@@ -1,36 +1,42 @@
 "use client";
 
-import { useState } from "react";
-import { useDispatch } from "react-redux";
-import { loginSuccess } from "@/store/authSlice";
-import { loginUser } from "@/utils/api";
+import { useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { login } from "@/store/authSlice";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import MyIcon from "@/app/MyIcon";
 
 export default function Login() {
   const dispatch = useDispatch();
+  const router = useRouter();
+
+  // on récupère le status et l’erreur du thunk
+  const { status, error, isAuthenticated } = useSelector((s) => s.auth);
+
+  // Si login réussi, on redirige vers home
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push("/");
+    }
+  }, [isAuthenticated, router]);
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const router = useRouter();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const data = await loginUser(email, password);
-      const { userId, username, role, token } = data;
-
-      dispatch(
-        loginSuccess({
-          user: { id: userId, username, role, email },
-          token,
-        })
-      );
-      console.log("Login successful:", data);
+      // Dispatch du thunk et unwrap permet de catcher l'erreur ici
+      await dispatch(login({ email, password })).unwrap();
+      // Si tout s'est bien passé, on redirige
       router.push("/");
-    } catch (error) {
-      console.error("Login failed:", error);
-      alert("Login failed: " + (error.response?.data?.message || "Unknown error"));
+    } catch (err) {
+      console.error("Login failed:", err);
+      alert(
+        "Login failed: " +
+          (err.message || err.response?.data?.message || "Unknown error")
+      );
     }
   };
 
@@ -42,7 +48,11 @@ export default function Login() {
         </div>
 
         <h1 className="text-3xl font-bold text-black mb-10 text-center leading-tight">
-          Send and<br />receive messages<br />in real time.
+          Send and
+          <br />
+          receive messages
+          <br />
+          in real time.
         </h1>
 
         <Link href="/auth/register" className="block mb-6">
@@ -59,7 +69,11 @@ export default function Login() {
 
         <form onSubmit={handleLogin} className="space-y-5">
           <div>
-            <input type="email" id="email" placeholder="pseudo or email"
+            {/* Email input */}
+            <input
+              type="email"
+              id="email"
+              placeholder="pseudo or email"
               className="w-full border-b border-[#5B5F63] placeholder-[#A2A5A9] text-black bg-transparent p-2 focus:outline-none focus:border-black"
               value={email} onChange={(e) => setEmail(e.target.value)} required/>
           </div>
@@ -76,7 +90,17 @@ export default function Login() {
             </i>
           </div>
 
-          <button type="submit" className="w-full text-sm text-white bg-black rounded-full px-6 py-3">Log in</button>
+          <button
+            type="submit"
+            className="w-full text-sm text-white bg-black rounded-full px-6 py-3"
+          >
+            Log in
+          </button>
+          {status === "failed" && (
+            <p className="text-red-500">
+              {error?.message || error || "Erreur inconnue"}
+            </p>
+          )}
         </form>
       </div>
     </div>
