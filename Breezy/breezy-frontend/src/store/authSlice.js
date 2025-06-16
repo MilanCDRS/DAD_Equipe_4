@@ -36,6 +36,7 @@ const initialState = {
  * @param {object} reducers - Un objet contenant les reducers (fonctions qui modifient l'état) de la slice. On dit qu'on dispatch l'action pour modifier l'état.
 
 */
+
 const authSlice = createSlice({
   name: "auth",
   initialState,
