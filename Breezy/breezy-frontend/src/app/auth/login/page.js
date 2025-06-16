@@ -45,7 +45,7 @@ export default function Login() {
           Send and<br />receive messages<br />in real time.
         </h1>
 
-        <Link href="/registration" className="block mb-6">
+        <Link href="/auth/register" className="block mb-6">
           <button className="w-full text-sm text-white bg-black rounded-full px-6 py-3">
             Create an account
           </button>

@@ -24,7 +24,7 @@ export default function CompleteProfilePage() {
       <div className="max-w-md mx-auto w-full">
         <div className="flex items-center justify-between mb-6">
   <div className="w-[70px]">
-    <Link href="/registration" className="text-sm text-black font-medium">Back</Link>
+    <Link href="/auth/register" className="text-sm text-black font-medium">Back</Link>
   </div>
   <div className="flex-1 flex justify-center">
     <MyIcon />

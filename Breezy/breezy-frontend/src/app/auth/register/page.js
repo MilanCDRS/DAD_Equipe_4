@@ -128,7 +128,7 @@ export default function CreateAccountPage() {
           )}
 
           <div className="w-full flex justify-end">
-            <Link href="/profile-setup">
+            <Link href="/auth/profile-setup">
               <button type="submit" className="mt-6 text-sm text-white bg-black rounded-full px-6 py-3">Next</button>
             </Link>
           </div>
