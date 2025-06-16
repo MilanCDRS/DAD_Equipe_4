@@ -1,9 +1,35 @@
-const { createSlice } = require("@reduxjs/toolkit"); // on importe la fonction createSlice de redux toolkit
+const { createSlice, createAsyncThunk } = require("@reduxjs/toolkit"); // on importe la fonction createSlice de redux toolkit
+import { loginUser } from "@/utils/api"; // on importe le localStorage pour la persistance
+
+// Thunk pour l'appel /login de l'API.
+export const login = createAsyncThunk(
+  "auth/login",
+  async ({ email, password }, { rejectWithValue }) => {
+    try {
+      const response = await loginUser(email, password);
+      // on attend que loginUser renvoie { userId, username, email, role, token }
+      return response;
+    } catch (err) {
+      return rejectWithValue(err.response?.data || err.message);
+    }
+  }
+);
+
+// On ne lit le localStorage qu'en client
+const isBrowser = typeof window !== "undefined";
+const tokenFromStorage = isBrowser
+  ? window.localStorage.getItem("token")
+  : null;
+const userFromStorage = isBrowser
+  ? JSON.parse(window.localStorage.getItem("user") || "null")
+  : null;
 
 const initialState = {
-  user: null,
-  isAuthenticated: false,
-  token: null,
+  user: userFromStorage,
+  isAuthenticated: !!tokenFromStorage,
+  token: tokenFromStorage,
+  status: "idle", // idle | loading | succeeded | failed
+  error: null,
 };
 
 /** 
@@ -13,37 +39,68 @@ const initialState = {
  * @param {object} reducers - Un objet contenant les reducers (fonctions qui modifient l'état) de la slice. On dit qu'on dispatch l'action pour modifier l'état.
 
 */
+
 const authSlice = createSlice({
   name: "auth",
-  initialState, // l'état init qu'on a défini au dessus
-  // objet qui contient les reducers et donc les actions que la slice peut gérer
+  initialState,
+  // reducers synchrones
   reducers: {
     /**
-     * Action pour gérer la connexion réussie d'un utilisateur.
-     * @param {object} state - L'état actuel de la slice.
-     * @param {object} action - L'action qui contient le payload avec les données de l'utilisateur et le token.
+     * Déconnexion :
+     * - on reset tout l’état
+     * - on supprime la persistance en localStorage
      */
-    loginSuccess: (state, action) => {
-      state.user = action.payload.user;
-      state.isAuthenticated = true;
-      state.token = action.payload.token;
-      state.email = action.payload.email;
-    },
-    /**
-     * Action pour gérer la déconnexion d'un utilisateur.
-     * @param {object} state - L'état actuel de la slice.
-     */
-    logout: (state) => {
+    logout(state) {
       state.user = null;
-      state.isAuthenticated = false;
       state.token = null;
+      state.isAuthenticated = false;
+      state.status = "idle";
       state.error = null;
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
     },
+  },
+  // réhydratation de l'état depuis le localStorage
+  rehydrate(state, action) {
+    const { user, token } = action.payload;
+    state.user = user;
+    state.token = token;
+    state.isAuthenticated = true;
+  },
+  //  Gère les états de la requête asynchrone `login`
+  extraReducers: (builder) => {
+    builder
+      // Quand on lance `dispatch(login(...))`
+      .addCase(login.pending, (state) => {
+        state.status = "loading"; // on est en cours
+        state.error = null; // on reset l’erreur
+      })
+      // Quand la promesse est résolue avec succès
+      .addCase(login.fulfilled, (state, action) => {
+        state.status = "succeeded"; // terminé OK
+        state.isAuthenticated = true; // on est connecté
+        state.token = action.payload.token; // on stocke le token
+        // on construit l’objet user à partir de la réponse
+        state.user = {
+          username: action.payload.username,
+          email: action.payload.email,
+          role: action.payload.role,
+          userId: action.payload.userId,
+        };
+        // Persistance dans localStorage pour reloads
+        localStorage.setItem("token", action.payload.token);
+        localStorage.setItem("user", JSON.stringify(state.user));
+      })
+      // En cas d’erreur réseau ou 4xx/5xx
+      .addCase(login.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload || action.error.message;
+      });
   },
 });
 
-// ici on exporte les actions générées par createSlice: c'est les fonctions qu'on'appelle pour modifier l'état de la slice.
-export const { loginSuccess, logout } = authSlice.actions;
+// ici on exporte les actions générées par createSlice: c'est les fonctions qu'on'appelle pour modifier l'état de la slice (il n'y a plus loginSuccess)
+export const { logout, rehydrate } = authSlice.actions;
 
 // chaque slice a un reducer principal, on l'expote pour l'ajouter au store global
 export default authSlice.reducer;

@@ -9,13 +9,6 @@ const router = express.Router();
 const userController = require("../controllers/user.controller");
 const requiredFields = require("../middlewares/requiredFields.middleware");
 
-// Exemple: création d'un user avec validation des champs obligatoires
-router.post(
-  "/",
-  requiredFields(["username", "email", "password"]),
-  userController.createUser
-);
-
 router.get("/", userController.getAllUsers);
 
 router.get("/:id", userController.getUserById);
@@ -23,11 +16,5 @@ router.get("/:id", userController.getUserById);
 router.patch("/:id", userController.updateUser);
 
 router.delete("/:id", userController.deleteUser);
-
-router.post(
-  "/login",
-  requiredFields(["email", "password"]),
-  userController.loginUser
-);
 
 module.exports = router;

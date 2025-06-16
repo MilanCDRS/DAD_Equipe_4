@@ -9,7 +9,7 @@ require("dotenv").config();
 const app = require("./app");
 const connectDB = require("./src/config/db");
 
-const PORT = process.env.PORT || 5005; // si le port 5000 est utilisé par un autre processus, on utilise le port 5005
+const PORT = process.env.PORT || 3000;
 
 connectDB()
   .then(() => {
