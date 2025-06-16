@@ -1,4 +1,5 @@
 import axios from "axios";
+import Cookies from "js-cookie";
 
 const apiClient = axios.create({
   baseURL: "http://localhost:3001/api",
@@ -8,10 +9,12 @@ const apiClient = axios.create({
   },
 });
 
-// si un jour on veut stocker le token en localStorage
+// On injecte automatiquement le token depuis le cookie
 apiClient.interceptors.request.use((config) => {
-  const token = window.localStorage.getItem("token");
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+  const token = Cookies.get("token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
   return config;
 });
 

@@ -1,33 +1,30 @@
 const { createSlice, createAsyncThunk } = require("@reduxjs/toolkit"); // on importe la fonction createSlice de redux toolkit
-import { loginUser } from "@/utils/api"; // on importe le localStorage pour la persistance
+import { loginUser } from "@/utils/api";
+import Cookies from "js-cookie";
 
 // Thunk pour l'appel /login de l'API.
 export const login = createAsyncThunk(
   "auth/login",
   async ({ email, password }, { rejectWithValue }) => {
     try {
-      const response = await loginUser(email, password);
-      // on attend que loginUser renvoie { userId, username, email, role, token }
-      return response;
+      const data = await loginUser(email, password);
+      return data; // { userId, username, email, role, token }
     } catch (err) {
       return rejectWithValue(err.response?.data || err.message);
     }
   }
 );
 
-// On ne lit le localStorage qu'en client
-const isBrowser = typeof window !== "undefined";
-const tokenFromStorage = isBrowser
-  ? window.localStorage.getItem("token")
-  : null;
-const userFromStorage = isBrowser
-  ? JSON.parse(window.localStorage.getItem("user") || "null")
+// Au démarrage, on lit le cookie "token" et "user"
+const tokenFromCookie = Cookies.get("token");
+const userFromCookie = Cookies.get("user")
+  ? JSON.parse(Cookies.get("user"))
   : null;
 
 const initialState = {
-  user: userFromStorage,
-  isAuthenticated: !!tokenFromStorage,
-  token: tokenFromStorage,
+  user: userFromCookie,
+  isAuthenticated: !!tokenFromCookie,
+  token: tokenFromCookie,
   status: "idle", // idle | loading | succeeded | failed
   error: null,
 };
@@ -39,7 +36,6 @@ const initialState = {
  * @param {object} reducers - Un objet contenant les reducers (fonctions qui modifient l'état) de la slice. On dit qu'on dispatch l'action pour modifier l'état.
 
 */
-
 const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -48,7 +44,7 @@ const authSlice = createSlice({
     /**
      * Déconnexion :
      * - on reset tout l’état
-     * - on supprime la persistance en localStorage
+     * - on efface les cookikes
      */
     logout(state) {
       state.user = null;
@@ -56,42 +52,39 @@ const authSlice = createSlice({
       state.isAuthenticated = false;
       state.status = "idle";
       state.error = null;
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
+      // effacer les cookies
+      Cookies.remove("token");
+      Cookies.remove("user");
     },
-  },
-  // réhydratation de l'état depuis le localStorage
-  rehydrate(state, action) {
-    const { user, token } = action.payload;
-    state.user = user;
-    state.token = token;
-    state.isAuthenticated = true;
   },
   //  Gère les états de la requête asynchrone `login`
   extraReducers: (builder) => {
     builder
-      // Quand on lance `dispatch(login(...))`
       .addCase(login.pending, (state) => {
-        state.status = "loading"; // on est en cours
-        state.error = null; // on reset l’erreur
+        state.status = "loading";
+        state.error = null;
       })
-      // Quand la promesse est résolue avec succès
       .addCase(login.fulfilled, (state, action) => {
-        state.status = "succeeded"; // terminé OK
-        state.isAuthenticated = true; // on est connecté
-        state.token = action.payload.token; // on stocke le token
-        // on construit l’objet user à partir de la réponse
+        state.status = "succeeded";
+        state.isAuthenticated = true;
+        state.token = action.payload.token;
         state.user = {
           username: action.payload.username,
           email: action.payload.email,
           role: action.payload.role,
           userId: action.payload.userId,
         };
-        // Persistance dans localStorage pour reloads
-        localStorage.setItem("token", action.payload.token);
-        localStorage.setItem("user", JSON.stringify(state.user));
+        // persister dans les cookies
+        Cookies.set("token", action.payload.token, {
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "Strict",
+          // pas d'expiration ici, sinon ajoutez : expires: 7  (jours)
+        });
+        Cookies.set("user", JSON.stringify(state.user), {
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "Strict",
+        });
       })
-      // En cas d’erreur réseau ou 4xx/5xx
       .addCase(login.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload || action.error.message;
@@ -100,7 +93,7 @@ const authSlice = createSlice({
 });
 
 // ici on exporte les actions générées par createSlice: c'est les fonctions qu'on'appelle pour modifier l'état de la slice (il n'y a plus loginSuccess)
-export const { logout, rehydrate } = authSlice.actions;
+export const { logout } = authSlice.actions;
 
 // chaque slice a un reducer principal, on l'expote pour l'ajouter au store global
 export default authSlice.reducer;
