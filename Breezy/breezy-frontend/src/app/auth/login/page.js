@@ -1,24 +1,22 @@
+// src/app/auth/login/page.js
 "use client";
 
 import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { login } from "@/store/authSlice";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import MyIcon from "@/app/MyIcon";
+import { login } from "@/store/authSlice";
+import { useTranslation } from "@/app/lib/TranslationProvider";
 
 export default function Login() {
   const dispatch = useDispatch();
   const router = useRouter();
-
-  // on récupère le status et l’erreur du thunk
+  const { t } = useTranslation();
   const { status, error, isAuthenticated } = useSelector((s) => s.auth);
 
-  // Si login réussi, on redirige vers home
   useEffect(() => {
-    if (isAuthenticated) {
-      router.push("/");
-    }
+    if (isAuthenticated) router.push("/");
   }, [isAuthenticated, router]);
 
   const [email, setEmail] = useState("");
@@ -27,66 +25,62 @@ export default function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      // Dispatch du thunk et unwrap permet de catcher l'erreur ici
       await dispatch(login({ email, password })).unwrap();
-      // Si tout s'est bien passé, on redirige
       router.push("/");
     } catch (err) {
-      console.error("Login failed:", err);
-      alert(
-        "Login failed: " +
-          (err.message || err.response?.data?.message || "Unknown error")
-      );
+      alert(`${t("loginFailed")}: ${err.message || t("unknownError")}`);
     }
   };
 
   return (
-    <div className="bg-white min-h-screen px-6 pt-8 pb-10 sm:px-10 sm:pt-12 font-[family-name:var(--font-geist-sans)]">
+    <div className="bg-white min-h-screen px-6 pt-8 pb-10 sm:px-10 sm:pt-12 font-[var(--font-geist-sans)]">
       <div className="max-w-md mx-auto w-full">
         <div className="flex justify-center mb-10">
           <MyIcon />
         </div>
 
-        <h1 className="text-3xl font-bold text-black mb-10 text-center leading-tight">
-          Send and
-          <br />
-          receive messages
-          <br />
-          in real time.
-        </h1>
+        <h1
+          className="text-3xl font-bold text-black mb-10 text-center leading-tight"
+          dangerouslySetInnerHTML={{ __html: t("homePhrase") }}
+        />
 
-        <Link href="/auth/register" className="block mb-6">
-          <button className="w-full text-sm text-white bg-black rounded-full px-6 py-3">
-            Create an account
-          </button>
-        </Link>
+        <button
+          onClick={() => router.push("/auth/register")}
+          className="w-full text-sm text-white bg-black rounded-full px-6 py-3 mb-6"
+        >
+          {t("createAccount")}
+        </button>
 
         <div className="flex items-center justify-center mb-6">
           <div className="flex-grow h-px bg-black" />
-          <span className="px-4 text-black font-medium text-sm">or</span>
+          <span className="px-4 text-black font-medium text-sm">{t("or")}</span>
           <div className="flex-grow h-px bg-black" />
         </div>
 
         <form onSubmit={handleLogin} className="space-y-5">
-          <div>
-            {/* Email input */}
-            <input
-              type="email"
-              id="email"
-              placeholder="pseudo or email"
-              className="w-full border-b border-[#5B5F63] placeholder-[#A2A5A9] text-black bg-transparent p-2 focus:outline-none focus:border-black"
-              value={email} onChange={(e) => setEmail(e.target.value)} required/>
-          </div>
+          <input
+            type="email"
+            placeholder={t("pseudoOrEmail")}
+            className="w-full border-b border-[#5B5F63] placeholder-[#A2A5A9] text-black bg-transparent p-2 focus:outline-none focus:border-black"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
 
-          <div>
-            <input type="password" id="password" placeholder="password"
-              className="w-full border-b border-[#5B5F63] placeholder-[#A2A5A9] text-black bg-transparent p-2 focus:outline-none focus:border-black"
-              value={password} onChange={(e) => setPassword(e.target.value)} required/>
-          </div>
+          <input
+            type="password"
+            placeholder={t("password")}
+            className="w-full border-b border-[#5B5F63] placeholder-[#A2A5A9] text-black bg-transparent p-2 focus:outline-none focus:border-black"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
 
           <div className="text-right text-sm">
             <i>
-              <Link href="#" className="text-blue-500 underline">Forgotten password ?</Link>
+              <Link href="#" className="text-blue-500 underline">
+                {t("forgotPassword")}
+              </Link>
             </i>
           </div>
 
@@ -94,11 +88,12 @@ export default function Login() {
             type="submit"
             className="w-full text-sm text-white bg-black rounded-full px-6 py-3"
           >
-            Log in
+            {t("toLogIn")}
           </button>
+
           {status === "failed" && (
             <p className="text-red-500">
-              {error?.message || error || "Erreur inconnue"}
+              {error?.message || error || t("unknownError")}
             </p>
           )}
         </form>
