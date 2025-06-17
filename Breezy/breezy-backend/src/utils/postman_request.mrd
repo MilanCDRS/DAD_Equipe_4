@@ -1,8 +1,0 @@
-Créer un user : (POST) http://localhost:5000/api/users 
-                (body raw) 
-{
-  "username": "alice",
-  "email": "alice@example.com",
-  "password": "securepassword",
-  "role": "user"
-}
