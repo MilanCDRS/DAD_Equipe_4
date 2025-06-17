@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { logout } from "@/store/authSlice"; // Action de déconnexion
+import Footer from "./Components/Footer"; // Composant Footer
 
 export default function Home() {
   // Accès au store Redux
@@ -51,6 +52,7 @@ export default function Home() {
       >
         Déconnexion
       </button>
+      <Footer />
     </div>
   );
 }

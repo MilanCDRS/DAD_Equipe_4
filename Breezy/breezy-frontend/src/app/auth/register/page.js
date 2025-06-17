@@ -1,4 +1,4 @@
-'use client';
+'use client'
 import MyIcon from "@/app/MyIcon";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -133,7 +133,9 @@ export default function CreateAccountPage() {
             </Link>
           </div>
         </form>
+        
       </div>
+      
     </div>
   );
 }
