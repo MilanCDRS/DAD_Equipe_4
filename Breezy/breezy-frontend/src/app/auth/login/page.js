@@ -36,7 +36,7 @@ export default function Login() {
     <div className="bg-white min-h-screen px-6 pt-8 pb-10 sm:px-10 sm:pt-12 font-[var(--font-geist-sans)]">
       <div className="max-w-md mx-auto w-full">
         <div className="flex justify-center mb-10">
-          <MyIcon />
+          <MyIcon width={100} height={100} />
         </div>
 
         <h1
@@ -88,7 +88,6 @@ export default function Login() {
             type="submit"
             className="w-full text-sm text-white bg-black rounded-full px-6 py-3"
           >
-            {t("toLogIn")}
           </button>
 
           {status === "failed" && (

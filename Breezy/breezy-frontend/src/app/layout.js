@@ -5,6 +5,7 @@ import store from "@/store/store";
 import TranslationProvider from "./lib/TranslationProvider";
 import LangSwitcher from "@/components/LangSwitcher";
 import "./globals.css";
+<<<<<<< HEAD
 
 export default function RootLayout({ children }) {
   return (
@@ -18,6 +19,21 @@ export default function RootLayout({ children }) {
             <main className="flex-1">{children}</main>
           </TranslationProvider>
         </ReduxProvider>
+=======
+import { useEffect } from "react";
+import { rehydrate } from "@/store/authSlice";
+import PageTest from "./Components/pagetest";
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+
+      <body>
+        <PageTest />
+        <Provider store={store}>{children}
+         
+        </Provider>
+>>>>>>> feature-post-message
       </body>
     </html>
   );
