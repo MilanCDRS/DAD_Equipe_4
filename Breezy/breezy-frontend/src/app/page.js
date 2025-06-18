@@ -1,31 +1,28 @@
-"use client"; // Obligatoire, car on utilise des hooks client
-
-import { useSelector } from "react-redux";
-import { useRouter } from "next/navigation";
+// src/app/page.js (ou wherever Home lives)
+"use client";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { logout } from "@/store/authSlice"; // Action de déconnexion
 import Footer from "./Components/Footer"; // Composant Footer
+import { useSelector, useDispatch } from "react-redux";
+import { useRouter } from "next/navigation";
+import { logout } from "@/store/authSlice";
+import { useTranslation } from "@/app/lib/TranslationProvider";
 
 export default function Home() {
-  // Accès au store Redux
   const dispatch = useDispatch();
-  const isAuth = useSelector((state) => state.auth.isAuthenticated);
-  const user = useSelector((state) => state.auth.user);
   const router = useRouter();
+  const { t } = useTranslation();
 
-  // Redirection si non authentifié
+  const isAuth = useSelector((s) => s.auth.isAuthenticated);
+  const user = useSelector((s) => s.auth.user);
+
   useEffect(() => {
-    if (!isAuth) {
-      router.push("/auth/login");
-    }
+    if (!isAuth) router.push("/auth/login");
   }, [isAuth, router]);
 
-  if (!isAuth) {
-    return <p>Chargement...</p>; // petit loading le temps que ça redirige
-  }
+  if (!isAuth) return <p>{t("loading")}</p>;
 
-  // Bouton de déconnexion
   const handleLogout = () => {
     dispatch(logout());
     router.push("/auth/login");
@@ -33,24 +30,24 @@ export default function Home() {
 
   return (
     <div className="p-4 max-w-md mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Bienvenue sur Breezy !</h1>
-      <p>Voici vos informations :</p>
+      <h1 className="text-2xl font-bold mb-4">{t("welcome")} Breezy !</h1>
+      <p>{t("userInfo")}</p>
       <ul className="mt-4 space-y-2">
         <li>
-          <strong>Nom d'utilisateur :</strong> {user?.username}
+          <strong>{t("username")} :</strong> {user?.username}
         </li>
         <li>
-          <strong>Email :</strong> {user?.email}
+          <strong>{t("email")} :</strong> {user?.email}
         </li>
         <li>
-          <strong>Rôle :</strong> {user?.role}
+          <strong>{t("role")} :</strong> {user?.role}
         </li>
       </ul>
       <button
         onClick={handleLogout}
         className="mt-6 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
       >
-        Déconnexion
+        {t("logout")}
       </button>
       <Footer />
     </div>
