@@ -1,6 +1,5 @@
 // src/app/auth/register/page.js
 "use client";
-
 import Link from "next/link";
 import MyIcon from "@/app/MyIcon";
 import { useEffect, useState } from "react";
@@ -139,7 +138,9 @@ export default function CreateAccountPage() {
             </button>
           </div>
         </form>
+        
       </div>
+      
     </div>
   );
 }

@@ -1,7 +1,9 @@
 // src/app/page.js (ou wherever Home lives)
 "use client";
-
 import { useEffect } from "react";
+import { useDispatch } from "react-redux";
+import { logout } from "@/store/authSlice"; // Action de déconnexion
+import Footer from "./Components/Footer"; // Composant Footer
 import { useSelector, useDispatch } from "react-redux";
 import { useRouter } from "next/navigation";
 import { logout } from "@/store/authSlice";
@@ -47,6 +49,7 @@ export default function Home() {
       >
         {t("logout")}
       </button>
+      <Footer />
     </div>
   );
 }

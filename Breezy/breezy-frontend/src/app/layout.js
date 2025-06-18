@@ -5,6 +5,19 @@ import store from "@/store/store";
 import TranslationProvider from "./lib/TranslationProvider";
 import LangSwitcher from "@/components/LangSwitcher";
 import "./globals.css";
+import { useEffect } from "react";
+import { rehydrate } from "@/store/authSlice";
+import PageTest from "./Components/pagetest";
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+
+      <body>
+        <PageTest />
+        <Provider store={store}>{children}
+         
+        </Provider>
 
 export default function RootLayout({ children }) {
   return (
