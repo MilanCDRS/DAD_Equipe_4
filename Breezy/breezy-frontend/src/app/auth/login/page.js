@@ -88,6 +88,7 @@ export default function Login() {
             type="submit"
             className="w-full text-sm text-white bg-black rounded-full px-6 py-3"
           >
+            {t("login")}
           </button>
 
           {status === "failed" && (

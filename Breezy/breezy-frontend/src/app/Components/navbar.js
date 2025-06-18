@@ -10,7 +10,7 @@ export default function Navbar() {
                     <UserIcon className="inline-block mr-2" size={24}  color="black"/>
 
                 </Link>
-                <Link href="/home" className="text-black hover:text-blue-500 ">
+                <Link href="/" className="text-black hover:text-blue-500 ">
                     <MyIcon with={24} height ={24}/>
                 </Link>
                 <Link href="/settings" className="text-black hover:text-blue-500 ">

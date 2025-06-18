@@ -2,16 +2,12 @@
 "use client";
 
 import { useEffect } from "react";
-<<<<<<< HEAD
 import { useSelector, useDispatch } from "react-redux";
 import { useRouter } from "next/navigation";
 import { logout } from "@/store/authSlice";
 import { useTranslation } from "@/app/lib/TranslationProvider";
-=======
-import { useDispatch } from "react-redux";
-import { logout } from "@/store/authSlice"; // Action de déconnexion
 import Footer from "./Components/Footer"; // Composant Footer
->>>>>>> feature-post-message
+
 
 export default function Home() {
   const dispatch = useDispatch();
@@ -53,7 +49,7 @@ export default function Home() {
       >
         {t("logout")}
       </button>
-      <Footer />
+      
     </div>
   );
 }
