@@ -2,7 +2,7 @@ import axios from "axios";
 import Cookies from "js-cookie";
 
 const apiClient = axios.create({
-  baseURL: "https://localhost/api",
+  baseURL: "http://localhost:3000/api/users/",
   timeout: 10000, // Timeout de 10 seconds
   headers: {
     "Content-Type": "application/json",
@@ -26,6 +26,26 @@ apiClient.interceptors.request.use((config) => {
  */
 export const loginUser = async (email, password) => {
   const response = await apiClient.post("/auth/login", { email, password });
+  return response.data;
+};
+
+export const registerUser = async (userData) => {
+  const response = await apiClient.post("/registerUser", userData);
+  return response.data;
+};
+
+export const getUserById = async (userId) => {
+  const response = await apiClient.get(`/${userId}`);
+  return response.data;
+};
+
+export const updateUser = async (userId, userData) => {
+  const response = await apiClient.patch(`/${userId}`, userData);
+  return response.data;
+};
+
+export const getAllUsers = async () => {
+  const response = await apiClient.get("/");
   return response.data;
 };
 
