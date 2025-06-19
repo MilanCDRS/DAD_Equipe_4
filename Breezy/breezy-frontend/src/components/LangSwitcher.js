@@ -4,7 +4,7 @@ export default function LangSwitcher() {
   const { lang, setLang } = useTranslation();
   return (
     <button
-      className="underline"
+      className="underline text-black font-size-3xl"
       onClick={() => {
         const next = lang === "fr" ? "en" : "fr";
         setLang(next);

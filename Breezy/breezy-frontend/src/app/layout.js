@@ -6,13 +6,11 @@ import TranslationProvider from "./lib/TranslationProvider";
 import LangSwitcher from "@/components/LangSwitcher";
 import "./globals.css";
 
-import PageTest from "./Components/pagetest";
 
 export default function RootLayout({ children }) {
   return (
     <html lang="fr">
       <body className="min-h-screen flex flex-col">
-        <PageTest />
         <ReduxProvider store={store}>
           <TranslationProvider>
             <header className="bg-gray-100 p-4">

@@ -44,12 +44,12 @@ export default function Login() {
           dangerouslySetInnerHTML={{ __html: t("homePhrase") }}
         />
 
-        <button
-          onClick={() => router.push("/auth/register")}
-          className="w-full text-sm text-white bg-black rounded-full px-6 py-3 mb-6"
-        >
-          {t("createAccount")}
-        </button>
+        <Link href="/auth/register">
+          <button className="w-full text-sm text-white bg-black rounded-full px-6 py-3 mb-6">
+            {t("createAccount")}
+          </button>
+        </Link>
+        
 
         <div className="flex items-center justify-center mb-6">
           <div className="flex-grow h-px bg-black" />
