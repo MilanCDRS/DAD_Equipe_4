@@ -9,7 +9,7 @@ const router = express.Router();
 const userController = require("../controllers/user.controller");
 const requiredFields = require("../middlewares/requiredFields.middleware");
 
-router.get("/", userController.getAllUsers);
+router.get("/users", userController.getAllUsers);
 
 router.get("/:id", userController.getUserById);
 
