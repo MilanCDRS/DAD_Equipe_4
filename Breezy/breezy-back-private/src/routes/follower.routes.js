@@ -5,11 +5,13 @@
 
 const express = require("express");
 const router = express.Router();
-
 const followerController = require("../controllers/follower.controller");
-const requiredFields = require("../middlewares/requiredFields.middleware");
 
 router.get("/", followerController.getAllfollowers);
+
+router.post("/", followerController.createfollower);
+
+router.get("/user/:username", followerController.getFollowersAndFollowingsByUsername);
 
 router.get("/:id", followerController.getfollowerById);
 

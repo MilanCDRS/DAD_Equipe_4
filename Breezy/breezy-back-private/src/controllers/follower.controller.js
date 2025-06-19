@@ -3,14 +3,14 @@
  * Description : Controller to manage follower operations such as creating a new follower.
  */
 
-const follower = require("../models/follower.model");
+const FollowerModel = require("../models/follower.model");
 
 /* CREATE */
 exports.createfollower = async (req, res) => {
   try {
     const { follower, following } = req.body;
 
-    const newfollower = new follower({
+    const newfollower = new FollowerModel({
       follower,
       following,
       accepted: false,
@@ -31,7 +31,7 @@ exports.createfollower = async (req, res) => {
 /* GET ALL */
 exports.getAllfollowers = async (req, res) => {
   try {
-    const followers = await follower.find().select(); // on exclut le mot de passe des résultats
+    const followers = await FollowerModel.find().select();
     res.status(200).json(followers);
   } catch (err) {
     console.error("Failed to fetch followers", err);
@@ -42,7 +42,7 @@ exports.getAllfollowers = async (req, res) => {
 /* GET */
 exports.getfollowerById = async (req, res) => {
   try {
-    const follower = await follower.findById(req.params.id).select();
+    const follower = await FollowerModel.findById(req.params.id).select();
     if (!follower) {
       return res.status(404).json({ message: "follower not found" });
     }
@@ -53,10 +53,34 @@ exports.getfollowerById = async (req, res) => {
   }
 };
 
+/* GET followers and followings of an user */
+exports.getFollowersAndFollowingsByUsername = async (req, res) =>{
+  try {
+    const username = req.params.username;
+
+    // 1. Récupérer tous ceux qui suivent l'utilisateur
+    const followersData = await FollowerModel.find({ following: username });
+    const followers = followersData.map(entry => entry.follower);
+
+    // 2. Récupérer tous ceux que l'utilisateur suit
+    const followingsData = await FollowerModel.find({ follower: username });
+    const followings = followingsData.map(entry => entry.following);
+
+    res.status(200).json({
+      followers,
+      followings
+    });
+  } catch (err) {
+    console.error("Failed to fetch followers/followings", err);
+    res.status(500).json({ message: "Server error: " + err });
+  }
+};
+
+
 /* DELETE  */
 exports.deletefollower = async (req, res) => {
   try {
-    const deletedfollower = await follower.findByIdAndDelete(req.params.id);
+    const deletedfollower = await FollowerModel.findByIdAndDelete(req.params.id);
     if (!deletedfollower) {
       return res.status(404).json({ message: "follower not found" });
     }
@@ -75,7 +99,7 @@ exports.updatefollower = async (req, res) => {
 
     const updateFields = { follower, following, accepted };
 
-    const updatedfollower = await follower.findByIdAndUpdate(
+    const updatedfollower = await FollowerModel.findByIdAndUpdate(
       req.params.id,
       updateFields,
       { new: true, runValidators: true }

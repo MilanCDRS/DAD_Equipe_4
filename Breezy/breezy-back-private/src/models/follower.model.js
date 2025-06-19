@@ -5,15 +5,15 @@
 
 const mongoose = require("mongoose");
 
-const roles = require("../utils/roles");
-
 const FollowerSchema = new mongoose.Schema(
   {
-    follower: { type: String, required: true, unique: true },
-    followinng: { type: String, required: true, unique: true },
+    follower: { type: String, required: true},
+    following: { type: String, required: true},
     accepted: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
+
+FollowerSchema.index({ follower: 1, following: 1 }, { unique: true });
 
 module.exports = mongoose.model("Follower", FollowerSchema);
