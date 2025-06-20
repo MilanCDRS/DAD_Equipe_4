@@ -13,9 +13,11 @@ export default function RootLayout({ children }) {
       <body className="min-h-screen flex flex-col">
         <ReduxProvider store={store}>
           <TranslationProvider>
+            {/*
             <header className="bg-gray-100 p-4">
               <LangSwitcher />
             </header>
+            */}
             <main className="flex-1">{children}</main>
           </TranslationProvider>
         </ReduxProvider>
