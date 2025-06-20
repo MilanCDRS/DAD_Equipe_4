@@ -93,7 +93,6 @@ exports.deleteUser = async (req, res) => {
 };
 
 /* UPDATE */
-
 exports.updateUser = async (req, res) => {
   try {
     const { username, email, bio, avatar, password } = req.body;
