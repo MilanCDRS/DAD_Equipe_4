@@ -1,24 +1,42 @@
-// src/app/auth/profile-setup/page.js
-"use client";
+"use client"
 
 import Link from "next/link";
 import MyIcon from "@/app/MyIcon";
-import { useState } from "react";
-import { useTranslation } from "@/lib/TranslationProvider";
+import {useState } from "react";
+import { useTranslation } from "../../../lib/TranslationProvider";
+import { updateUser } from "../../../../utils/api";
+import { useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+
 
 export default function CompleteProfilePage() {
   const { t } = useTranslation();
-
+  const { id } = useParams(); 
   const [bio, setBio] = useState("");
   const [profilePicture, setProfilePicture] = useState(null);
+  const router = useRouter();
 
+  // useEffect(() => {
+  //   if (!id) {
+  //     router.push("/auth/login");
+  //   }
+  // }, [id]);
+  console.log("Received id from params:", id);
   const handleImageUpload = (e) => {
     const file = e.target.files?.[0];
     if (file) setProfilePicture(file);
   };
 
-  const handleSubmit = (e) => {
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    const payload = {
+      bio: bio.trim(),
+      profilePicture,
+    };
+      await updateUser(id, payload);
+      router.push("/auth/login");
+
     alert(t("profileCompleted") || "Profile completed!");
   };
 

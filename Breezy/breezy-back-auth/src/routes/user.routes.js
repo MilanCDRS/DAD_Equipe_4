@@ -16,5 +16,10 @@ router.get("/:id", userController.getUserById);
 router.patch("/:id", userController.updateUser);
 
 router.delete("/:id", userController.deleteUser);
+router.post(
+  "/registerUser",
+  requiredFields(["username", "email", "password"]),
+  userController.createUser
+);
 
 module.exports = router;

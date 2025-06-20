@@ -29,4 +29,24 @@ export const loginUser = async (email, password) => {
   return response.data;
 };
 
+export const registerUser = async (userData) => {
+  const response = await apiClient.post("/auth/register", userData);
+  return response.data;
+};
+
+export const getUserById = async (userId) => {
+  const response = await apiClient.get(`/${userId}`);
+  return response.data;
+};
+
+export const updateUser = async (userId, userData) => {
+  const response = await apiClient.patch(`/${userId}`, userData);
+  return response.data;
+};
+
+export const getAllUsers = async () => {
+  const response = await apiClient.get("/");
+  return response.data;
+};
+
 export default apiClient;

@@ -1,13 +1,15 @@
 'use client'
 import MyIcon from "@/app/MyIcon";
 import Link from "next/link";
-import MyIcon from "@/app/MyIcon";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "../../lib/TranslationProvider";
+import {registerUser} from "@/utils/api";
+import { useRouter } from "next/navigation";
+
 
 export default function CreateAccountPage() {
   const { t } = useTranslation();
-  const [maxDate, setMaxDate] = useState("");
+  const router = useRouter();
 
   const [name, setName] = useState("");
   const [pseudo, setPseudo] = useState("");
@@ -17,11 +19,11 @@ export default function CreateAccountPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errors, setErrors] = useState([]);
 
-  useEffect(() => {
-    const today = new Date();
-    today.setFullYear(today.getFullYear() - 16);
-    setMaxDate(today.toISOString().split("T")[0]);
-  }, []);
+  const today = new Date();
+  today.setFullYear(today.getFullYear() - 16);
+  const initialMaxDate = today.toISOString().split("T")[0];
+
+  const [maxDate] = useState(initialMaxDate);
 
   const isValidEmail = (e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
 
@@ -34,7 +36,7 @@ export default function CreateAccountPage() {
     return errs;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const validationErrors = [];
 
@@ -49,9 +51,31 @@ export default function CreateAccountPage() {
     setErrors(validationErrors);
 
     if (validationErrors.length === 0) {
-      alert(t("formValid") || "Form is valid. Submitting...");
+      const payload = {
+        name: name.trim(),
+        username: pseudo,
+        email,
+        password, 
+        dateOfBirth: new Date(birthdate).toISOString(),
+      
+    };
+    try{
+      const data = await registerUser(payload);
+      router.push(`/auth/complete-profile/${data.userId}`);
+      if(data?.user?.username !== pseudo){
+        alert(`${t("pseudoChanged")} ${data.user.username}`)
+      }
+      
+    } catch (err) {
+        const field = err?.response?.data?.field;
+        const message = err?.response?.data?.message || "Erreur lors de la création";
+
+      if (field === "email") {
+        setErrors([message]);
+      }
     }
-  };
+    };
+  }
 
   return (
     <div className="bg-white min-h-screen font-[var(--font-geist-sans)] px-6 pt-8 pb-10 sm:px-10 sm:pt-12">
@@ -91,6 +115,7 @@ export default function CreateAccountPage() {
 
           <input
             type="date"
+            placeholder={t("birthdate")}
             value={birthdate}
             max={maxDate}
             onChange={(e) => setBirthdate(e.target.value)}
@@ -144,3 +169,4 @@ export default function CreateAccountPage() {
     </div>
   );
 }
+
