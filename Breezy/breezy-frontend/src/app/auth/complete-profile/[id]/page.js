@@ -1,32 +1,25 @@
-"use client"
+"use client";
 
 import Link from "next/link";
 import MyIcon from "@/app/MyIcon";
-import {useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "../../../lib/TranslationProvider";
 import { updateUser } from "../../../../utils/api";
 import { useParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 
-
 export default function CompleteProfilePage() {
   const { t } = useTranslation();
-  const { id } = useParams(); 
+  const { id } = useParams();
   const [bio, setBio] = useState("");
   const [profilePicture, setProfilePicture] = useState(null);
   const router = useRouter();
 
-  // useEffect(() => {
-  //   if (!id) {
-  //     router.push("/auth/login");
-  //   }
-  // }, [id]);
   console.log("Received id from params:", id);
   const handleImageUpload = (e) => {
     const file = e.target.files?.[0];
     if (file) setProfilePicture(file);
   };
-
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -34,8 +27,9 @@ export default function CompleteProfilePage() {
       bio: bio.trim(),
       profilePicture,
     };
-      await updateUser(id, payload);
-      router.push("/auth/login");
+
+    await updateProfile(payload);
+    router.push(`/users/${id}`);
 
     alert(t("profileCompleted") || "Profile completed!");
   };

@@ -4,9 +4,19 @@ const jwt = require("jsonwebtoken");
 
 exports.register = async (req, res) => {
   try {
-    const { username, email, password, role, dateOfBirth, bio, avatar } = req.body;
+    const { username, email, password, role, dateOfBirth, bio, avatar, name } =
+      req.body;
     const passwordHash = await bcrypt.hash(password, 10);
-    const newUser = new User({ username, email, passwordHash, role, dateOfBirth, bio, avatar });
+    const newUser = new User({
+      username,
+      email,
+      passwordHash,
+      role,
+      dateOfBirth,
+      bio,
+      avatar,
+      name,
+    });
     await newUser.save();
     res.status(201).json({ message: "User created", userId: newUser._id });
   } catch (err) {
@@ -62,14 +72,41 @@ exports.login = async (req, res) => {
   }
 };
 
-exports.authenticate = (req, res) => {
+exports.authenticate = (req, res, next) => {
   const token = req.headers["authorization"]?.split(" ")[1];
   if (!token) return res.sendStatus(401);
 
   jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
     if (err) return res.sendStatus(403);
-    res.sendStatus(200);
+    // on stocke userId et role dans req pour les routes suivantes
+    req.userId = decoded.userId;
+    req.userRole = decoded.role;
+    next();
   });
+};
+
+exports.updateProfile = async (req, res) => {
+  try {
+    // on récupère directement userId depuis le token
+    const userId = req.userId;
+    const { bio, avatar } = req.body;
+
+    // traitement du fichier image si nécessaire…
+    const updateFields = { bio };
+    if (avatar) updateFields.avatar = avatar; // adapter selon upload
+
+    const updated = await User.findByIdAndUpdate(userId, updateFields, {
+      new: true,
+      runValidators: true,
+    }).select("-passwordHash");
+
+    if (!updated)
+      return res.status(404).json({ message: "Utilisateur introuvable" });
+    res.status(200).json({ message: "Profil mis à jour", user: updated });
+  } catch (err) {
+    console.error("Update profile failed:", err);
+    res.status(500).json({ message: "Erreur serveur : " + err });
+  }
 };
 
 exports.refreshToken = (req, res) => {

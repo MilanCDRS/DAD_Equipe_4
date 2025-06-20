@@ -11,9 +11,13 @@ const apiClient = axios.create({
 
 // On injecte automatiquement le token depuis le cookie
 apiClient.interceptors.request.use((config) => {
-  const token = Cookies.get("token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  // Ne pas ajouter le token pour les routes d'inscription ou de connexion
+  const noAuthNeeded = ["/auth/register", "/auth/login"];
+  if (!noAuthNeeded.includes(config.url)) {
+    const token = Cookies.get("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
   }
   return config;
 });
@@ -39,8 +43,8 @@ export const getUserById = async (userId) => {
   return response.data;
 };
 
-export const updateUser = async (userId, userData) => {
-  const response = await apiClient.patch(`/${userId}`, userData);
+export const updateProfile = async (profileData) => {
+  const response = await apiClient.patch("/auth/profile", profileData);
   return response.data;
 };
 

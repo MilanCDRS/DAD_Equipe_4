@@ -23,7 +23,7 @@ app.use(
 );
 
 app.use(express.json());
-app.use(cookieParser()); // ✅ mettre avant les routes
+app.use(cookieParser()); // mettre avant les routes
 
 // Routes
 app.use("/api/auth", authRoutes);
