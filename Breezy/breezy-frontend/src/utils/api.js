@@ -2,7 +2,7 @@ import axios from "axios";
 import Cookies from "js-cookie";
 
 const apiClient = axios.create({
-  baseURL: "http://localhost:3000/api/users/",
+  baseURL: "https://localhost/api",
   timeout: 10000, // Timeout de 10 seconds
   headers: {
     "Content-Type": "application/json",
@@ -30,7 +30,7 @@ export const loginUser = async (email, password) => {
 };
 
 export const registerUser = async (userData) => {
-  const response = await apiClient.post("/registerUser", userData);
+  const response = await apiClient.post("/auth/register", userData);
   return response.data;
 };
 

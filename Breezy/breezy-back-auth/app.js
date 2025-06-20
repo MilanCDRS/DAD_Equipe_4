@@ -5,8 +5,7 @@
 
 const express = require("express");
 const cors = require("cors");
-const errorHandler = require("./src/middlewares/errorHandler"); 
-
+const errorHandler = require("./src/middlewares/errorHandler");
 
 // Cookie parser est utilisé pour gérer les cookies dans les requêtes HTTP
 const cookieParser = require("cookie-parser");
@@ -18,7 +17,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: "http://localhost:3001", // ou l’origine du front
+    origin: "http://localhost:3000", // ou l’origine du front
     credentials: true, // Pour que les cookies soient envoyés
   })
 );
@@ -34,6 +33,6 @@ app.use("/api/users", userRoutes);
 app.use((req, res) => {
   res.status(404).json({ message: "Route not found" });
 });
-app.use(errorHandler); 
+app.use(errorHandler);
 
 module.exports = app;
