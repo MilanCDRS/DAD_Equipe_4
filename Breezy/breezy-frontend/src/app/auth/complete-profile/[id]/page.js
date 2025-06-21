@@ -4,7 +4,7 @@ import Link from "next/link";
 import MyIcon from "@/app/MyIcon";
 import { useState } from "react";
 import { useTranslation } from "../../../lib/TranslationProvider";
-import { updateUser } from "../../../../utils/api";
+import { updateProfile } from "../../../../utils/api";
 import { useParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 

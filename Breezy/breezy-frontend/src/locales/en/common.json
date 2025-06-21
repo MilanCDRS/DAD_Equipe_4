@@ -19,6 +19,7 @@
   "loginFailed": "Login failed",
   "cancel": "Cancel",
   "pseudoChanged" : "Pseudo was already picked. Yours is now " ,
+  "welcomeText" : "Not implemented yet",
   "createYourAccount": "Create your account",
   "firstLastName": "First and last name",
   "confirmPassword": "Confirm password",
