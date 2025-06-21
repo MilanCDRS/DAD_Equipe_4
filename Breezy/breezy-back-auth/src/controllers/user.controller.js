@@ -9,8 +9,24 @@ const jwt = require("jsonwebtoken");
 
 /* CREATE */
 exports.createUser = async (req, res) => {
-  try {
-    const { username, email, password, role } = req.body;
+    const { name, username, email, password, role, dateOfBirth } = req.body;
+
+    const existingEmail = await User.findOne({ email });
+  if (existingEmail) {
+    return res.status(409).json({
+      field: "email",
+      message: "Un compte avec cet email existe déjà. Veuillez vous connecter.",
+    });
+  }
+
+  let finalUsername = username;
+  let usernameTaken = await User.findOne({ username: finalUsername });
+  while (usernameTaken) {
+    const randomNum = Math.floor(1000 + Math.random() * 9000);
+    finalUsername = `${username}${randomNum}`;
+    usernameTaken = await User.findOne({ username: finalUsername });
+  }
+
 
     // Hash du mot de passe avec bcrypt ( voir backend/documentations/documentation.mrd)
 
@@ -18,10 +34,13 @@ exports.createUser = async (req, res) => {
     const passwordHash = await bcrypt.hash(password, salt);
 
     const newUser = new User({
-      username,
+      name: name || "", 
+      username: finalUsername,
       email,
       passwordHash,
       role,
+      dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null, 
+      bio: req.body.bio || "",
     });
 
     await newUser.save();
@@ -30,10 +49,7 @@ exports.createUser = async (req, res) => {
       message: "User created successfully",
       userId: newUser._id,
     });
-  } catch (err) {
-    console.error("User creation failed", err);
-    res.status(500).json({ message: "Server error :" + err });
-  }
+   
 };
 
 /* GET ALL */

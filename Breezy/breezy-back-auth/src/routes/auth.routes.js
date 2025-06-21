@@ -8,6 +8,7 @@ const express = require("express");
 const router = express.Router();
 const authController = require("../controllers/auth.controller");
 const requiredFields = require("../middlewares/requiredFields.middleware");
+const { authenticate } = authController;
 
 router.post(
   "/register",
@@ -24,5 +25,7 @@ router.post(
 router.post("/refresh-token", authController.refreshToken);
 
 router.get("/authenticate", authController.authenticate);
+
+router.patch("/profile", authenticate, authController.updateProfile);
 
 module.exports = router;

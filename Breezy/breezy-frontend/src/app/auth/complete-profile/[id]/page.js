@@ -1,39 +1,58 @@
 "use client";
+
 import Link from "next/link";
 import MyIcon from "@/app/MyIcon";
 import { useState } from "react";
+import { useTranslation } from "../../../lib/TranslationProvider";
+import { updateUser } from "../../../../utils/api";
+import { useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 export default function CompleteProfilePage() {
+  const { t } = useTranslation();
+  const { id } = useParams();
   const [bio, setBio] = useState("");
   const [profilePicture, setProfilePicture] = useState(null);
+  const router = useRouter();
 
+  console.log("Received id from params:", id);
   const handleImageUpload = (e) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setProfilePicture(file);
-    }
+    if (file) setProfilePicture(file);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    alert("Profile completed!");
+    const payload = {
+      bio: bio.trim(),
+      profilePicture,
+    };
+
+    await updateProfile(payload);
+    router.push(`/users/${id}`);
+
+    alert(t("profileCompleted") || "Profile completed!");
   };
 
   return (
-    <div className="bg-white min-h-screen font-[family-name:var(--font-geist-sans)] px-6 pt-8 pb-10 sm:px-10 sm:pt-12">
+    <div className="bg-white min-h-screen font-[var(--font-geist-sans)] px-6 pt-8 pb-10 sm:px-10 sm:pt-12">
       <div className="max-w-md mx-auto w-full">
         <div className="flex items-center justify-between mb-6">
-  <div className="w-[70px]">
-    <Link href="/auth/register" className="text-sm text-black font-medium">Back</Link>
-  </div>
-  <div className="flex-1 flex justify-center">
-    <MyIcon />
-  </div>
-  <div className="w-[70px]" />
-</div>
+          <div className="w-[70px]">
+            <Link
+              href="/auth/register"
+              className="text-sm text-black font-medium"
+            >
+              {t("cancel")}
+            </Link>
+          </div>
+          <div className="flex-1 flex justify-center">
+            <MyIcon />
+          </div>
+          <div className="w-[70px]" />
+        </div>
 
-
-        <form className="w-full space-y-8 relative" onSubmit={handleSubmit}>
+        <form className="w-full space-y-8" onSubmit={handleSubmit}>
           <div className="flex flex-col items-center space-y-3">
             <label
               htmlFor="profile-pic-upload"
@@ -62,18 +81,18 @@ export default function CompleteProfilePage() {
               onChange={handleImageUpload}
             />
             <h2 className="text-lg font-bold text-black text-center">
-              Choose a profile picture
+              {t("chooseProfilePicture")}
             </h2>
           </div>
 
           <div>
             <h2 className="text-lg font-bold text-black mb-2">
-              Describe yourself
+              {t("describeYourself")}
             </h2>
             <textarea
               value={bio}
               onChange={(e) => setBio(e.target.value)}
-              placeholder="Bio"
+              placeholder={t("bioPlaceholder") || "Bio"}
               className="w-full border-b border-[#5B5F63] placeholder-[#A2A5A9] focus:outline-none focus:border-black text-black bg-transparent p-2 resize-none"
               rows={3}
             />
@@ -84,7 +103,7 @@ export default function CompleteProfilePage() {
               type="submit"
               className="text-sm text-white bg-black rounded-full px-6 py-3"
             >
-              Create
+              {t("create")}
             </button>
           </div>
         </form>
