@@ -1,4 +1,10 @@
-import {NotImplementedComponent} from "../Components/NotImplementedComponent";
-export default function(){
-    return( <NotImplementedComponent/> );
+import MainLayoutComponent from "@/components/MainLayoutComponent";
+
+export default function () {
+  return (
+    <div>
+      {" "}
+      <MainLayoutComponent>MESSAGE</MainLayoutComponent>
+    </div>
+  );
 }

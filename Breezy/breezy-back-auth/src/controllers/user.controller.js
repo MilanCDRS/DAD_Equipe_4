@@ -9,9 +9,9 @@ const jwt = require("jsonwebtoken");
 
 /* CREATE */
 exports.createUser = async (req, res) => {
-    const { name, username, email, password, role, dateOfBirth } = req.body;
+  const { name, username, email, password, role, dateOfBirth } = req.body;
 
-    const existingEmail = await User.findOne({ email });
+  const existingEmail = await User.findOne({ email });
   if (existingEmail) {
     return res.status(409).json({
       field: "email",
@@ -27,29 +27,27 @@ exports.createUser = async (req, res) => {
     usernameTaken = await User.findOne({ username: finalUsername });
   }
 
+  // Hash du mot de passe avec bcrypt ( voir backend/documentations/documentation.mrd)
 
-    // Hash du mot de passe avec bcrypt ( voir backend/documentations/documentation.mrd)
+  const salt = await bcrypt.genSalt(10);
+  const passwordHash = await bcrypt.hash(password, salt);
 
-    const salt = await bcrypt.genSalt(10);
-    const passwordHash = await bcrypt.hash(password, salt);
+  const newUser = new User({
+    name: name || "",
+    username: finalUsername,
+    email,
+    passwordHash,
+    role,
+    dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
+    bio: req.body.bio || "",
+  });
 
-    const newUser = new User({
-      name: name || "", 
-      username: finalUsername,
-      email,
-      passwordHash,
-      role,
-      dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null, 
-      bio: req.body.bio || "",
-    });
+  await newUser.save();
 
-    await newUser.save();
-
-    res.status(201).json({
-      message: "User created successfully",
-      userId: newUser._id,
-    });
-   
+  res.status(201).json({
+    message: "User created successfully",
+    userId: newUser._id,
+  });
 };
 
 /* GET ALL */

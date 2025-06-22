@@ -1,9 +1,10 @@
-import {NotImplementedComponent} from "../Components/NotImplementedComponent";
-export default function(){
-    return(
-        <div>
-            welcome in breezy search
-            <NotImplementedComponent/>
-        </div>
-     );
+import MainLayoutComponent from "@/components/MainLayoutComponent";
+
+export default function () {
+  return (
+    <div>
+      {" "}
+      <MainLayoutComponent>NOTIFICATIONS</MainLayoutComponent>
+    </div>
+  );
 }

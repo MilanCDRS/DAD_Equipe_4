@@ -5,7 +5,7 @@ import Footer from "../components/Footer";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import Post from "../components/post";
-import PostButton from "../components/PostButton";
+import CreatePostButton from "../components/CreatePostButton";
 import { useSelector } from "react-redux";
 import { redirect, useRouter } from "next/navigation";
 
@@ -58,7 +58,7 @@ export default function PostsPage() {
           bottom: "88px",
         }}
       >
-        <PostButton />
+        <CreatePostButton />
       </div>
 
       {/* Footer fixé en bas */}
