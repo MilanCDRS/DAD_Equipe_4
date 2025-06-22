@@ -3,22 +3,34 @@
 import Link from "next/link";
 import MyIcon from "@/app/MyIcon";
 import { useState } from "react";
-import { useTranslation } from "../../../lib/TranslationProvider";
-import { updateUser } from "../../../../utils/api";
+import { useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { useTranslation } from "@/app/lib/TranslationProvider";
 import { useParams } from "next/navigation";
 import { useRouter } from "next/navigation";
+
 
 import Image from 'next/image';
 import defaultAvatar from '@/app/images/defaultAvatar.png';
 
 export default function CompleteProfilePage() {
-  const { t } = useTranslation();
-  const { id } = useParams();
-  const [bio, setBio] = useState("");
-  const [profilePicture, setProfilePicture] = useState(null);
+  const dispatch = useDispatch();
   const router = useRouter();
+  const { t } = useTranslation();
+  const isAuth = useSelector((s) => s.auth.isAuthenticated);
+  const user = useSelector((s) => s.auth.user);
 
-  console.log("Received id from params:", id);
+  const [bio, setBio] = useState(user?.bio || "");
+  const [profilePicture, setProfilePicture] = useState(user?.avatar || null);
+
+  useEffect(() => {
+    if (!isAuth) router.push("/auth/login");
+  }, [isAuth, router]);
+
+  if (!isAuth) return <p>{t("loading")}</p>;
+ 
+
+  console.log("Received id from params:", user?.id);
   const handleImageUpload = (e) => {
     const file = e.target.files?.[0];
     if (file) setProfilePicture(file);
@@ -32,9 +44,13 @@ export default function CompleteProfilePage() {
     };
 
     await updateProfile(payload);
-    router.push(`/users/${id}`);
+    router.push("/profilePages/profile");
 
     alert(t("profileCompleted") || "Profile completed!");
+  };
+
+  const handleProfile = () => {
+    router.push("/profilePages/profile");
   };
 
   return (
@@ -42,12 +58,13 @@ export default function CompleteProfilePage() {
       <div className="max-w-md mx-auto w-full">
         <div className="flex items-center justify-between mb-6">
           <div className="w-[70px]">
-            <Link
-              href="/auth/register"
-              className="text-sm text-black font-medium"
-            >
-              {t("cancel")}
-            </Link>
+            <button className="text-black p-5" onClick={handleProfile}>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                        d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
           </div>
           <div className="flex-1 flex justify-center">
             <MyIcon />
@@ -75,7 +92,7 @@ export default function CompleteProfilePage() {
                     width={96}
                     height={96}
                     className="w-24 h-24 rounded-full border-4 border-white shadow-lg object-cover bg-gray-200"
-                  />
+                />
                 )}
               </div>
               <div className="absolute bottom-0 right-0 bg-blue-500 w-6 h-6 rounded-full text-white flex items-center justify-center text-sm">
@@ -112,7 +129,7 @@ export default function CompleteProfilePage() {
               type="submit"
               className="text-sm text-white bg-black rounded-full px-6 py-3"
             >
-              {t("create")}
+              {t("Save")}
             </button>
           </div>
         </form>

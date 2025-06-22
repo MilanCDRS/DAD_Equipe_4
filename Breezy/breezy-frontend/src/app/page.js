@@ -28,6 +28,10 @@ export default function Home() {
     router.push("/auth/login");
   };
 
+  const handleProfile = () => {
+    router.push("/profilePages/profile");
+  };
+
   return (
     <div className="p-4 max-w-md mx-auto">
       <h1 className="text-2xl font-bold mb-4">{t("welcome")} Breezy !</h1>
@@ -48,6 +52,13 @@ export default function Home() {
         className="mt-6 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
       >
         {t("logout")}
+      </button>
+
+      <button
+        onClick={handleProfile}
+        className="mt-6 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+      >
+        {t("profile")}
       </button>
       
     </div>

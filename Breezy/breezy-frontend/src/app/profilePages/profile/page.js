@@ -5,8 +5,8 @@ import defaultAvatar from '@/app/images/defaultAvatar.png';
 import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useRouter } from "next/navigation";
-import { logout } from "@/store/authSlice";
 import { useTranslation } from "@/app/lib/TranslationProvider";
+import { getUserById, getUsersFollowers } from "@/utils/api";
 
 export default function ProfileCard() {
   const dispatch = useDispatch();
@@ -22,6 +22,30 @@ export default function ProfileCard() {
 
   if (!isAuth) return <p>{t("loading")}</p>;
 
+  const getUserInfos = async () => {
+    try {
+      const userInfos = await getUserById(user.userId);
+      user.bio = userInfos.bio || "No bio available";
+      user.profilePicture = userInfos.profilePicture || defaultAvatar;
+    } catch (error) {
+      console.error("Error fetching user infos:", error);
+    }
+  };
+  getUserInfos();
+
+  const getUsersFollowers = async () => {
+    try {
+      const followers = await getUsersFollowers(user.username);       
+      user.followers = followers.followersCount || 0;
+      user.followings = followers.followingsCount || 0;
+    } catch (error) {
+      console.error("Error fetching user followers:", error);
+    }
+  };
+  getUsersFollowers();
+
+
+
   const [activeTab, setActiveTab] = useState('posts');
 
   const renderTabContent = () => {
@@ -35,6 +59,10 @@ export default function ProfileCard() {
       default:
         return null;
     }
+  };
+
+  const handleProfileSettings = () => {
+    router.push("/profilePages/profileSettings");
   };
 
   return (
@@ -70,12 +98,14 @@ export default function ProfileCard() {
             <h1 className="text-xl font-bold text-black">{user?.username}</h1>
             <p className="text-gray-500">@{user?.username}</p>
                 </div>
-                <button className="px-3 py-1 text-sm border border-gray-400 rounded-full hover:bg-gray-100 text-black">
-            Edit profile
+                <button className="px-3 py-1 text-sm border border-gray-400 rounded-full hover:bg-gray-100 text-black"
+                 onClick={handleProfileSettings}>
+                 
+                  {t("editProfile")}
                 </button>
               </div>
 
-              <p className="mt-2 text-sm text-gray-600">Bio</p>
+              <p className="mt-2 text-sm text-gray-600">{user?.bio}</p>
 
               <div className="flex items-center text-sm text-gray-500 mt-2">
                 <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
@@ -85,8 +115,8 @@ export default function ProfileCard() {
               </div>
 
               <div className="flex space-x-4 mt-2 text-sm text-gray-700">
-                <span><span className="font-semibold">217</span> Following</span>
-                <span><span className="font-semibold">118</span> Followers</span>
+                <span><span className="font-semibold">{user?.follingsCount}</span> Following</span>
+                <span><span className="font-semibold">{user?.followersCount}</span> Followers</span>
               </div>
             </div>
           </div>
@@ -99,19 +129,19 @@ export default function ProfileCard() {
               onClick={() => setActiveTab('posts')}
               className={`flex-1 py-3 ${activeTab === 'posts' ? 'border-b-2 border-blue-500 text-blue-600' : 'hover:bg-gray-100'}`}
             >
-              Posts
+              {t("Posts")}
             </button>
             <button
               onClick={() => setActiveTab('comments')}
               className={`flex-1 py-3 ${activeTab === 'comments' ? 'border-b-2 border-blue-500 text-blue-600' : 'hover:bg-gray-100'}`}
             >
-              Comments
+              {t("Comments")}
             </button>
             <button
               onClick={() => setActiveTab('likes')}
               className={`flex-1 py-3 ${activeTab === 'likes' ? 'border-b-2 border-blue-500 text-blue-600' : 'hover:bg-gray-100'}`}
             >
-              Likes
+              {t("Likes")}
             </button>
           </div>
 
