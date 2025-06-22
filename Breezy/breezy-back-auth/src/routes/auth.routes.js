@@ -28,4 +28,6 @@ router.get("/authenticate", authController.authenticate);
 
 router.patch("/profile", authenticate, authController.updateProfile);
 
+router.post("/logout", authController.logout);
+
 module.exports = router;

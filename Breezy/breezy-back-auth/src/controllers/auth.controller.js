@@ -6,7 +6,9 @@ exports.register = async (req, res) => {
   try {
     const { username, email, password, role, dateOfBirth, bio, avatar, name } =
       req.body;
+    // HASH MDP
     const passwordHash = await bcrypt.hash(password, 10);
+
     const newUser = new User({
       username,
       email,
@@ -18,7 +20,19 @@ exports.register = async (req, res) => {
       name,
     });
     await newUser.save();
-    res.status(201).json({ message: "User created", userId: newUser._id });
+
+    // [ACCESS TOKEN] on génère  un JWT à l’inscription avec user id et role
+    const accessToken = jwt.sign(
+      { userId: newUser._id, role: newUser.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "10m" }
+    );
+
+    return res.status(201).json({
+      message: "User created",
+      userId: newUser._id,
+      token: accessToken,
+    });
   } catch (err) {
     console.error("Register failed:", err);
     res.status(500).json({ message: "Server error: " + err });
@@ -27,31 +41,30 @@ exports.register = async (req, res) => {
 
 exports.login = async (req, res) => {
   try {
-    console.log("Login attempt with body:", req.body);
     const { email, password } = req.body;
     const user = await User.findOne({ email });
     if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
       return res.status(400).json({ message: "Invalid email or password" });
     }
 
-    // Génère l'access token (valide 10 minutes)
+    // [ACCESS TOKEN] Génère l'access token (valide 10 minutes)
     const accessToken = jwt.sign(
       { userId: user._id, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: "10m" }
     );
 
-    // Génère le refresh token (valide 7 jours)
+    // [REFRESH TOKEN] Génère le refresh token (valide 7 jours)
     const refreshToken = jwt.sign(
       { userId: user._id, role: user.role },
       process.env.JWT_REFRESH_SECRET,
       { expiresIn: "7d" }
     );
 
-    // Stocke le refresh token dans un cookie sécurisé
+    //Cookie HttpOnly pour refresh token : stocke le refresh token dans un cookie sécurisé
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // true en prod
+      secure: process.env.NODE_ENV === "production", // [PROD] true en prod
       sameSite: "Strict",
       path: "/api/auth/refresh-token", // important : correspond à la route utilisée
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 jours
@@ -78,7 +91,7 @@ exports.authenticate = (req, res, next) => {
 
   jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
     if (err) return res.sendStatus(403);
-    // on stocke userId et role dans req pour les routes suivantes
+    // conserve userId et role sur req
     req.userId = decoded.userId;
     req.userRole = decoded.role;
     next();
@@ -124,4 +137,15 @@ exports.refreshToken = (req, res) => {
 
     res.json({ accessToken: newAccessToken });
   });
+};
+
+// src/controllers/auth.controller.js
+exports.logout = (req, res) => {
+  // on efface le cookie refreshToken
+  res.clearCookie("refreshToken", {
+    httpOnly: true,
+    sameSite: "Strict",
+    path: "/api/auth/refresh-token",
+  });
+  res.sendStatus(204);
 };

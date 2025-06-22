@@ -1,36 +1,70 @@
-// src/app/page.js (ou wherever Home lives)
 "use client";
 
-import { useEffect } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import { useRouter } from "next/navigation";
-import { logout } from "@/store/authSlice";
-import { useTranslation } from "@/app/lib/TranslationProvider";
-import Post from "./Components/post";
+import Navbar from "../components/navbar";
+import Footer from "../components/Footer";
+import { useEffect, useState } from "react";
+import axios from "axios";
+import Post from "../components/post";
+import PostButton from "../components/PostButton";
+import { useSelector } from "react-redux";
+import { redirect, useRouter } from "next/navigation";
 
-
-export default function Home() {
-  const dispatch = useDispatch();
-  const router = useRouter();
-  const { t } = useTranslation();
-
-  const isAuth = useSelector((s) => s.auth.isAuthenticated);
-  const user = useSelector((s) => s.auth.user);
+export default function PostsPage() {
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const { token } = useSelector((state) => state.auth);
+  if (!token) {
+    redirect("/auth/login");
+  }
 
   useEffect(() => {
-    if (!isAuth) router.push("/auth/login");
-  }, [isAuth, router]);
-
-  if (!isAuth) return <p>{t("loading")}</p>;
-
-  // const handleLogout = () => {
-  //   dispatch(logout());
-  //   router.push("/auth/login");
-  // };
+    axios
+      .get("/api/public/posts")
+      .then((res) => {
+        setPosts(res.data);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
 
   return (
-    <div>
-        <Post/>
+    <div className="bg-[#f7f9fa] min-h-screen flex flex-col">
+      <div className="fixed top-0 left-0 w-full z-20">
+        <Navbar />
+      </div>
+
+      <main
+        className="flex-1 max-w-xl mx-auto w-full px-4 py-8"
+        style={{
+          marginTop: "64px",
+          marginBottom: "72px" /* ajuste selon la taille réelle */,
+        }}
+      >
+        {loading ? (
+          <div className="text-center text-black py-10">Chargement...</div>
+        ) : posts.length === 0 ? (
+          <div className="text-center text-black py-10">
+            Aucun post pour le moment
+          </div>
+        ) : (
+          posts.map((post, idx) => <Post key={post._id || idx} post={post} />)
+        )}
+      </main>
+
+      <div
+        className="fixed z-40"
+        style={{
+          right: "32px",
+          bottom: "88px",
+        }}
+      >
+        <PostButton />
+      </div>
+
+      {/* Footer fixé en bas */}
+      <div className="fixed bottom-0 left-0 w-full z-20">
+        <Footer />
+      </div>
     </div>
   );
 }

@@ -23,7 +23,6 @@ const userFromCookie = Cookies.get("user")
 
 const initialState = {
   user: userFromCookie,
-  isAuthenticated: !!tokenFromCookie,
   token: tokenFromCookie,
   status: "idle", // idle | loading | succeeded | failed
   error: null,
@@ -49,7 +48,6 @@ const authSlice = createSlice({
     logout(state) {
       state.user = null;
       state.token = null;
-      state.isAuthenticated = false;
       state.status = "idle";
       state.error = null;
       // effacer les cookies
@@ -66,7 +64,6 @@ const authSlice = createSlice({
       })
       .addCase(login.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.isAuthenticated = true;
         state.token = action.payload.token;
         state.user = {
           username: action.payload.username,

@@ -1,21 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import MyIcon from "@/app/MyIcon";
+import BreezyLogo from "@/BreezyLogo";
 import { useState } from "react";
 import { useTranslation } from "../../../lib/TranslationProvider";
-import { updateProfile } from "../../../../utils/api";
-import { useParams } from "next/navigation";
 import { useRouter } from "next/navigation";
+import { useDispatch, useSelector } from "react-redux";
+import { updateProfile } from "@/store/userSlice";
 
 export default function CompleteProfilePage() {
   const { t } = useTranslation();
-  const { id } = useParams();
-  const [bio, setBio] = useState("");
-  const [profilePicture, setProfilePicture] = useState(null);
   const router = useRouter();
+  const dispatch = useDispatch();
+  const user = useSelector((state) => state.user.user); // contient userId, username, etc.
 
-  console.log("Received id from params:", id);
+  const [bio, setBio] = useState(user?.bio || "");
+  const [profilePicture, setProfilePicture] = useState(null);
+
   const handleImageUpload = (e) => {
     const file = e.target.files?.[0];
     if (file) setProfilePicture(file);
@@ -23,15 +24,17 @@ export default function CompleteProfilePage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const payload = {
-      bio: bio.trim(),
-      profilePicture,
-    };
-
-    await updateProfile(payload);
-    router.push(`/users/${id}`);
-
-    alert(t("profileCompleted") || "Profile completed!");
+    try {
+      // envoie bio + avatar ; la thunk met à jour le store
+      await dispatch(
+        updateProfile({ bio: bio.trim(), avatar: profilePicture })
+      ).unwrap();
+      // redirige sur la home
+      router.push("/");
+    } catch (err) {
+      console.error("UpdateProfile failed:", err);
+      alert(err.message || "Erreur lors de la mise à jour");
+    }
   };
 
   return (
@@ -47,7 +50,7 @@ export default function CompleteProfilePage() {
             </Link>
           </div>
           <div className="flex-1 flex justify-center">
-            <MyIcon />
+            <BreezyLogo />
           </div>
           <div className="w-[70px]" />
         </div>
