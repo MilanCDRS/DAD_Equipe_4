@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from 'react';
+import axios from 'axios';
 import Image from 'next/image';
 import defaultAvatar from '@/app/images/defaultAvatar.png';
 import { useEffect } from "react";
@@ -7,6 +8,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "@/app/lib/TranslationProvider";
 import { getUserById, getUsersFollowers } from "@/utils/api";
+import Post from "@/components/post";
 
 export default function ProfileCard() {
   const dispatch = useDispatch();
@@ -17,33 +19,60 @@ export default function ProfileCard() {
   const user = useSelector((s) => s.auth.user);
 
   useEffect(() => {
-    if (!isAuth) router.push("/auth/login");
+    if (!isAuth || !user) router.push("/auth/login");
   }, [isAuth, router]);
 
   if (!isAuth) return <p>{t("loading")}</p>;
 
-  const getUserInfos = async () => {
-    try {
-      const userInfos = await getUserById(user.userId);
-      user.bio = userInfos.bio || "No bio available";
-      user.profilePicture = userInfos.profilePicture || defaultAvatar;
-    } catch (error) {
-      console.error("Error fetching user infos:", error);
-    }
-  };
-  getUserInfos();
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await axios.get(`/api/user/${user?.userId}`);
+        if (res.data) {
+          user.bio = res.data.bio || "";
+          user.avatar = res.data.avatar || "";
+        }
+      } catch (error) {
+        console.error("Error fetching user profile:", error);
+      }
+    };
+    if (user?.userId) fetchProfile();
+  }, [user?.userId]);
 
-  const getUsersFollowers = async () => {
+  const [followersCount, setFollowersCount] = useState(0);
+  const [followingsCount, setFollowingsCount] = useState(0);
+
+  const fetchFollowersData = async (username) => {
     try {
-      const followers = await getUsersFollowers(user.username);       
-      user.followers = followers.followersCount || 0;
-      user.followings = followers.followingsCount || 0;
+      const res = await axios.get(`/api/public/follower/user/${username}`);
+      setFollowersCount(res.data.followersCount || 0);
+      setFollowingsCount(res.data.followingsCount || 0);
     } catch (error) {
       console.error("Error fetching user followers:", error);
     }
   };
-  getUsersFollowers();
 
+  useEffect(() => {
+    if (user?.username) fetchFollowersData(user.username);
+  }, [user?.username]);
+
+
+  // recupération des posts, commentaires et likes
+  const [posts, setPosts] = useState([]);
+  const [comments, setComments] = useState([]);
+  const [likes, setLikes] = useState([]);
+
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const res = await axios.get(`/api/public/posts/user/${user?.username}`);
+        setPosts(res.data || []);
+      } catch (error) {
+        console.error("Error fetching user posts:", error);
+      }
+    };
+    if (user?.username) fetchPosts();
+  }, [user?.username]);
 
 
   const [activeTab, setActiveTab] = useState('posts');
@@ -51,7 +80,17 @@ export default function ProfileCard() {
   const renderTabContent = () => {
     switch (activeTab) {
       case 'posts':
-        return <p>Voici les posts...</p>;
+        return (
+          posts.length === 0 ? (
+            <div className="text-center text-black py-10">
+              Aucun post pour le moment
+            </div>
+          ) : (
+            posts.map((post) => (
+              <Post key={post._id} post={post} currentUser={user} />
+            ))
+          )
+        );
       case 'comments':
         return <p>Voici les commentaires...</p>;
       case 'likes':
@@ -72,7 +111,7 @@ export default function ProfileCard() {
             <div className="bg-gray-300 h-40 relative">
 
               {/* Flèche retour */}
-              <button className="text-white p-5">
+              <button className="text-white p-5" onClick={() => router.back()}>
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none"
                     viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -115,8 +154,8 @@ export default function ProfileCard() {
               </div>
 
               <div className="flex space-x-4 mt-2 text-sm text-gray-700">
-                <span><span className="font-semibold">{user?.follingsCount}</span> Following</span>
-                <span><span className="font-semibold">{user?.followersCount}</span> Followers</span>
+                <span><span className="font-semibold">{followingsCount}</span> Following</span>
+                <span><span className="font-semibold">{followersCount}</span> Followers</span>
               </div>
             </div>
           </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import MyIcon from "@/app/MyIcon";
+import BreezyLogo from "@/BreezyLogo";
 import { useState } from "react";
 import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
@@ -12,7 +12,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import defaultAvatar from "@/app/images/defaultAvatar.png";
 
-export default function CompleteProfilePage() {
+export default function SettingsProfilePage() {
   const dispatch = useDispatch();
   const router = useRouter();
   const { t } = useTranslation();
@@ -48,16 +48,12 @@ export default function CompleteProfilePage() {
     alert(t("profileCompleted") || "Profile completed!");
   };
 
-  const handleProfile = () => {
-    router.push("/profilePages/profile");
-  };
-
   return (
     <div className="bg-white min-h-screen font-[var(--font-geist-sans)] px-6 pt-8 pb-10 sm:px-10 sm:pt-12">
       <div className="max-w-md mx-auto w-full">
         <div className="flex items-center justify-between mb-6">
           <div className="w-[70px]">
-            <button className="text-black p-5" onClick={handleProfile}>
+            <button className="text-black p-5" onClick={router.back}>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="h-6 w-6"
@@ -75,7 +71,7 @@ export default function CompleteProfilePage() {
             </button>
           </div>
           <div className="flex-1 flex justify-center">
-            <MyIcon />
+            <BreezyLogo  width={24} height={24} />
           </div>
           <div className="w-[70px]" />
         </div>

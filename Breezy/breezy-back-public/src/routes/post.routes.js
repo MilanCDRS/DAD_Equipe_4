@@ -16,6 +16,13 @@ router.get('/posts', async (req, res) => {
   res.json(posts);
 });
 
+//liste des posts d'un utilisateur
+router.get('/posts/user/:username', async (req, res) => {
+  const { username } = req.params;
+  const posts = await Post.find({ 'user.username': username }).sort({ createdAt: -1 });
+  res.json(posts);
+});
+
 // Création d’un post (texte + image locale optionnelle)
 router.post('/posts', upload.single('image'), async (req, res) => {
   try {

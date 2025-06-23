@@ -5,7 +5,7 @@
 
 const express = require("express");
 const router = express.Router();
-const followerController = require("../controllers/follower.controller");
+const followerController = require("../controller/follower.controller");
 
 router.get("/", followerController.getAllfollowers);
 

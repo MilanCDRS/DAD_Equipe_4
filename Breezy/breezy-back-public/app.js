@@ -15,6 +15,8 @@ app.use(express.urlencoded({ extended: true }));
 
 const postRoutes = require("./src/routes/post.routes");
 app.use("/", postRoutes);
+const followerRoutes = require("./src/routes/follower.routes");
+app.use("/follower", followerRoutes);
 
 app.get("/", (req, res) => {
   res.json({ msg: "Welcome to the public API" });

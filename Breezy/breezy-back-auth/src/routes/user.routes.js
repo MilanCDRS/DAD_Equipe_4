@@ -11,7 +11,7 @@ const requiredFields = require("../middlewares/requiredFields.middleware");
 
 router.get("/", userController.getAllUsers);
 
-router.get("/:id", userController.getUserById);
+router.get("/:userId", userController.getUserById);
 
 router.patch("/:id", userController.updateUser);
 

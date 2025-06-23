@@ -12,10 +12,7 @@ app.use(
   })
 );
 
-const followerRoutes = require("./src/routes/follower.routes");
 app.use(express.json());
-
-app.use("/api/follower", followerRoutes);
 
 app.use((req, res, next) => {
   const token = req.headers["authorization"]?.split(" ")[1];

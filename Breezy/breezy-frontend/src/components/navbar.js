@@ -40,7 +40,7 @@ export default function Navbar() {
     <>
       <header className="fixed top-0 left-0 w-full bg-white shadow-md z-20">
         <nav className="container mx-auto flex items-center justify-center space-x-24 h-16">
-          <Link href="/profile" className="text-black hover:text-blue-500">
+          <Link href="/profilePages/profile" className="text-black hover:text-blue-500">
             <UserIcon size={24} />
           </Link>
 
@@ -60,7 +60,7 @@ export default function Navbar() {
               <div className="absolute right-0 mt-2 w-48 bg-white border rounded-md shadow-lg z-50">
                 <button
                   onClick={handleLogout}
-                  className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                  className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-black"
                 >
                   Se déconnecter
                 </button>
