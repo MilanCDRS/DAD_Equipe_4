@@ -27,10 +27,10 @@ router.post("/refresh-token", authController.refreshToken);
 
 router.get("/authenticate", authController.authenticate);
 
-<<<<<<< HEAD
 router.patch("/profile", authenticate, authController.updateProfile);
+
 router.post("/logout", authController.logout);
-=======
+
 router.patch(
   "/profile",
   authenticate, // le middleware jtwt
@@ -38,7 +38,4 @@ router.patch(
   authController.updateProfile
 );
 
-router.post("/logout", authController.logout);
-
->>>>>>> 5b247bd7a55339714dccbbccaad1675689aa5d92
 module.exports = router;

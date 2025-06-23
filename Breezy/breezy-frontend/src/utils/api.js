@@ -3,7 +3,7 @@ import Cookies from "js-cookie";
 
 const apiClient = axios.create({
   baseURL: "https://localhost/api",
-  timeout: 2000, // Timeout de 2 seconds
+  timeout: 10000, // Timeout de 10 seconds
   headers: {
     "Content-Type": "application/json",
   },
