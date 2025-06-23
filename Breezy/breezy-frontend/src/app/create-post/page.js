@@ -1,11 +1,15 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useSelector } from "react-redux"; // AJOUT pour récupérer le user connecté
 import axios from "axios";
 
 export default function CreatePostPage() {
-  const [text, setText] = useState("");
+  const isAuth = useSelector((s) => s.auth.isAuthenticated); // AUTH
+  const currentUser = useSelector((s) => s.auth.user); // USER CONNECTÉ
+
+  const [text, setText] = useState('');
   const [image, setImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -13,6 +17,13 @@ export default function CreatePostPage() {
   const router = useRouter();
 
   const MAX_IMAGE_SIZE = 2 * 1024 * 1024; // 2 Mo
+
+  // Protection : redirige si non connecté
+  useEffect(() => {
+    if (!isAuth) {
+      router.replace("/auth/login");
+    }
+  }, [isAuth, router]);
 
   const handleSend = async () => {
     if (!text.trim() && !image) return;
@@ -22,10 +33,20 @@ export default function CreatePostPage() {
       formData.append("content", text);
       if (image) formData.append("image", image);
 
-      await axios.post("/api/public/posts", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-        withCredentials: true,
-      });
+      // ENVOIE AUSSI LE USER CONNECTÉ
+      formData.append("user", JSON.stringify({
+        username: currentUser?.username,
+        displayName: currentUser?.displayName || currentUser?.name || currentUser?.username
+      }));
+
+      await axios.post(
+        "/api/public/posts",
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+          withCredentials: true
+        }
+      );
 
       setText("");
       setImage(null);
@@ -52,6 +73,8 @@ export default function CreatePostPage() {
       setImagePreview(URL.createObjectURL(file));
     }
   };
+
+  if (!isAuth) return <div>Chargement...</div>; // Affiche un loader si pas encore auth
 
   return (
     <div className="min-h-screen bg-white flex flex-col items-center">

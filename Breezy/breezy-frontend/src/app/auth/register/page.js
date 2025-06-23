@@ -24,7 +24,6 @@ export default function CreateAccountPage() {
   const today = new Date();
   today.setFullYear(today.getFullYear() - 16);
   const initialMaxDate = today.toISOString().split("T")[0];
-
   const [maxDate] = useState(initialMaxDate);
 
   const isValidEmail = (e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
