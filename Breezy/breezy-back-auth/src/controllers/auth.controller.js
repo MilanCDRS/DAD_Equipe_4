@@ -144,13 +144,14 @@ exports.refreshToken = (req, res) => {
   });
 };
 
-// src/controllers/auth.controller.js
 exports.logout = (req, res) => {
-  // on efface le cookie refreshToken
+  // on spprime le cookie de refresh token
   res.clearCookie("refreshToken", {
     httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
     sameSite: "Strict",
     path: "/api/auth/refresh-token",
   });
-  res.sendStatus(204);
+
+  res.status(200).json({ message: "Logout successful" });
 };

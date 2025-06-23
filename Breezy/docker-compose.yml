@@ -1,21 +1,48 @@
+version: "3.8"
+
 services:
+  # ------------------
+  # Service Auth (backend d'authentification)
+  # ------------------
   auth:
+    # En dev on rebuild à chaque `docker-compose up --build`
     build: ./breezy-back-auth
+    # En prod, on pourrait remplacer par :
+    # image: my-registry/breezy-back-auth:${TAG:-latest}
     ports:
       - "3001:3000"
-    networks:
-      - app-network
+    environment:
+      # En dev, on se connecte à Mongo sur le réseau docker
+      MONGO_HOST: auth-mongo
+      MONGO_PORT: 27017
+      MONGO_DATABASE_NAME: breezy-auth-db
+      JWT_SECRET: UneCleSuperSecrete
+      JWT_REFRESH_SECRET: UneAutreCleCleSuperSecrete
+      PORT: 3000
+      # Pour MinIO S3 car on upload l'avatar depuis lui à la création user
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: minio123
+      MINIO_BUCKET: avatars
+      # NODE_ENV peut servir à activer la config prod/dev
+      NODE_ENV: development
     depends_on:
       - auth-mongo
+    # Healthcheck pour s'assurer que le service est prêt
+    # (utile pour nginx)
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000"]
-      interval: 1m30s
-      timeout: 30s
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 5s
       retries: 5
-      start_period: 30s
+      start_period: 10s
+    # On utilise un réseau dédié pour la communication entre services
+    networks:
+      - app-network
 
   auth-mongo:
     image: mongo:6.0
+    # En dev, on mappe le port hors du container pour y accéder localement
     ports:
       - "27020:27017"
     volumes:
@@ -23,23 +50,26 @@ services:
     networks:
       - app-network
 
+  # ------------------
+  # Service Public (API publique posts, etc.)
+  # ------------------
   public:
     build: ./breezy-back-public
+    # image: my-registry/breezy-back-public:${TAG:-latest}  # PROD
     ports:
       - "3002:3000"
-    networks:
-      - app-network
     depends_on:
       - public-mongo
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000"]
-      interval: 10s
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
       timeout: 5s
       retries: 5
+    networks:
+      - app-network
 
   public-mongo:
     image: mongo:6.0
-    container_name: public-mongo
     ports:
       - "27018:27017"
     volumes:
@@ -47,23 +77,26 @@ services:
     networks:
       - app-network
 
+  # ------------------
+  # Service Private (API protégée)
+  # ------------------
   private:
     build: ./breezy-back-private
+    # image: my-registry/breezy-back-private:${TAG:-latest}  # PROD
     ports:
       - "3003:3000"
-    networks:
-      - app-network
     depends_on:
       - private-mongo
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000"]
-      interval: 10s
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
       timeout: 5s
       retries: 5
+    networks:
+      - app-network
 
   private-mongo:
     image: mongo:6.0
-    container_name: private-mongo
     ports:
       - "27019:27017"
     volumes:
@@ -71,9 +104,58 @@ services:
     networks:
       - app-network
 
+  # ------------------
+  # Service Frontend (Next.js)
+  # ------------------
+  frontend:
+    build: ./breezy-frontend
+    command: npm run dev
+    volumes:
+      - ./breezy-frontend:/app
+      - /app/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - app-network
+    restart: unless-stopped
+
+    # En prod on ferait plutôt :
+    # image: my-registry/breezy-frontend:${TAG:-latest}
+    # command: npm run start
+    # volumes: []  # plus de montage
+    # environment:
+    #   NODE_ENV: production
+
+  # ------------------
+  # MinIO (stockage S3-compatible pour avatars / médias)
+  # ------------------
+  minio:
+    image: minio/minio
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000" # endpoint S3
+      - "9001:9001" # console web
+    environment:
+      MINIO_ROOT_USER: minio # à sécuriser en prod
+      MINIO_ROOT_PASSWORD: minio123
+    volumes:
+      - minio-data:/data
+    networks:
+      - app-network
+
+  # ------------------
+  # Nginx / Gateway
+  # ------------------
   nginx:
     image: nginx:latest
     container_name: gateway
+    restart: unless-stopped # ← se relance sauf si on l'arrête manuellement
     ports:
       - "80:80"
       - "443:443"
@@ -88,32 +170,9 @@ services:
       private:
         condition: service_healthy
       frontend:
-        condition: service_started
+        condition: service_healthy
     networks:
       - app-network
-
-  frontend:
-    build: ./breezy-frontend
-    command: npm run dev
-    volumes:
-      - ./breezy-frontend:/app
-      - /app/node_modules
-    environment:
-      - CHOKIDAR_USEPOLLING=true
-    networks:
-      - app-network
-
-  minio:
-    image: minio/minio
-    command: server /data --console-address ":9001"
-    ports:
-      - "9000:9000" # API S3
-      - "9001:9001" # Console web
-    environment:
-      MINIO_ROOT_USER: minio
-      MINIO_ROOT_PASSWORD: minio123
-    volumes:
-      - minio-data:/data #persistance des objets
 
 networks:
   app-network:

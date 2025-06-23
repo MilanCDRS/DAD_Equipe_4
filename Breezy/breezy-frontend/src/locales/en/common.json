@@ -28,6 +28,7 @@
   "invalidEmail": "Please enter a valid email address",
   "birthdateRequired": "Birthdate is required",
   "passwordMismatch": "Passwords do not match",
+  "Logout" : "Log out",
   "passwordMinLength": "Password must be at least 12 characters long",
   "passwordUppercase": "Password must contain at least one uppercase letter",
   "passwordNumber": "Password must contain at least one number",

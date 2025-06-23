@@ -27,13 +27,15 @@ router.post("/refresh-token", authController.refreshToken);
 
 router.get("/authenticate", authController.authenticate);
 
+router.patch("/profile", authenticate, authController.updateProfile);
+
+router.post("/logout", authController.logout);
+
 router.patch(
   "/profile",
   authenticate, // le middleware jtwt
   upload.single("avatar"), // multer va traiter le champ "avatar"
   authController.updateProfile
 );
-
-router.post("/logout", authController.logout);
 
 module.exports = router;
