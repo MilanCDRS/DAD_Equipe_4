@@ -1,3 +1,4 @@
+/* src/store/authSlice.js */
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import Cookies from "js-cookie";
 import { registerUser, loginUser } from "../utils/api";
@@ -32,9 +33,12 @@ export const login = createAsyncThunk(
   }
 );
 
+const tokenFromCookie = Cookies.get("token") || null;
+
 const initialState = {
   user: null,
-  token: Cookies.get("token") || null,
+  token: tokenFromCookie,
+  isAuthenticated: Boolean(tokenFromCookie),
   status: "idle",
   error: null,
 };
@@ -46,6 +50,7 @@ const authSlice = createSlice({
     logout(state) {
       state.user = null;
       state.token = null;
+      state.isAuthenticated = false;
       Cookies.remove("token");
     },
   },
@@ -60,6 +65,7 @@ const authSlice = createSlice({
         s.status = "succeeded";
         s.token = payload.token;
         s.user = { userId: payload.userId };
+        s.isAuthenticated = true;
         Cookies.set("token", payload.token, { sameSite: "Strict" });
       })
       .addCase(register.rejected, (s, a) => {
@@ -81,6 +87,7 @@ const authSlice = createSlice({
           email: payload.email,
           role: payload.role,
         };
+        s.isAuthenticated = true;
         Cookies.set("token", payload.token, { sameSite: "Strict" });
       })
       .addCase(login.rejected, (s, a) => {

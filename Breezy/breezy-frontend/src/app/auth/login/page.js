@@ -27,7 +27,7 @@ export default function Login() {
     e.preventDefault();
     try {
       await dispatch(login({ email, password })).unwrap();
-      router.push("/posts");
+      router.push("/");
     } catch (err) {
       alert(`${t("loginFailed")}: ${err.message || t("unknownError")}`);
     }
