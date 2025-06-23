@@ -1,6 +1,7 @@
 const User = require("../models/user.model");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const upload = require("../middlewares/uploadToS3");
 
 exports.register = async (req, res) => {
   try {
@@ -98,16 +99,17 @@ exports.authenticate = (req, res, next) => {
     next();
   });
 };
+
+// src/controllers/auth.controller.js
 exports.updateProfile = async (req, res) => {
   try {
     const userId = req.userId;
     const { bio } = req.body;
     const update = { bio };
 
-    // Si multer a uploadé un fichier, req.file contient ses infos
-    if (req.file) {
-      // URL publique en partant de votre dossier /public
-      update.avatar = `/uploads/${req.file.filename}`;
+    if (req.file && req.file.location) {
+      // multer-s3 expose l’URL publique dans `file.location`
+      update.avatar = req.file.location;
     }
 
     const updated = await User.findByIdAndUpdate(userId, update, {
@@ -115,9 +117,9 @@ exports.updateProfile = async (req, res) => {
       runValidators: true,
     }).select("-passwordHash");
 
-    if (!updated) {
+    if (!updated)
       return res.status(404).json({ message: "Utilisateur introuvable" });
-    }
+
     res.status(200).json({ message: "Profil mis à jour", user: updated });
   } catch (err) {
     console.error("Update profile failed:", err);

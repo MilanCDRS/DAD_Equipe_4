@@ -9,7 +9,7 @@ const router = express.Router();
 const authController = require("../controllers/auth.controller");
 const requiredFields = require("../middlewares/requiredFields.middleware");
 const { authenticate } = authController;
-const upload = require("../middlewares/upload.middleware");
+const upload = require("../middlewares/uploadToS3");
 
 router.post(
   "/register",
