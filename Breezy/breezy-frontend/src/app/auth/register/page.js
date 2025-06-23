@@ -3,9 +3,8 @@ import MyIcon from "@/app/MyIcon";
 import Link from "next/link";
 import { useState } from "react";
 import { useTranslation } from "../../lib/TranslationProvider";
-import {registerUser} from "@/utils/api";
+import { registerUser } from "@/utils/api";
 import { useRouter } from "next/navigation";
-
 
 export default function CreateAccountPage() {
   const { t } = useTranslation();
@@ -22,20 +21,11 @@ export default function CreateAccountPage() {
   const today = new Date();
   today.setFullYear(today.getFullYear() - 16);
   const initialMaxDate = today.toISOString().split("T")[0];
-
   const [maxDate] = useState(initialMaxDate);
 
   const isValidEmail = (e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
 
-  const validatePassword = (pwd) => {
-    const errs = [];
-    if (pwd.length < 12) errs.push(t("passwordMinLength"));
-    if (!/[A-Z]/.test(pwd)) errs.push(t("passwordUppercase"));
-    if (!/[0-9]/.test(pwd)) errs.push(t("passwordNumber"));
-    if (!/[!@#$%^&*(),.?\":{}|<>]/.test(pwd)) errs.push(t("passwordSpecial"));
-    return errs;
-  };
-
+  // Plus aucune validation du password !
   const handleSubmit = async (e) => {
     e.preventDefault();
     const validationErrors = [];
@@ -47,7 +37,6 @@ export default function CreateAccountPage() {
     if (password !== confirmPassword)
       validationErrors.push(t("passwordMismatch"));
 
-    validationErrors.push(...validatePassword(password));
     setErrors(validationErrors);
 
     if (validationErrors.length === 0) {
@@ -55,27 +44,24 @@ export default function CreateAccountPage() {
         name: name.trim(),
         username: pseudo,
         email,
-        password, 
+        password,
         dateOfBirth: new Date(birthdate).toISOString(),
-      
-    };
-    try{
-      const data = await registerUser(payload);
-      router.push(`/auth/complete-profile/${data.userId}`);
-      if(data?.user?.username !== pseudo){
-        alert(`${t("pseudoChanged")} ${data.user.username}`)
-      }
-      
-    } catch (err) {
+      };
+      try {
+        const data = await registerUser(payload);
+        router.push(`/auth/complete-profile/${data.userId}`);
+        if (data?.user?.username !== pseudo) {
+          alert(`${t("pseudoChanged")} ${data.user.username}`)
+        }
+      } catch (err) {
         const field = err?.response?.data?.field;
         const message = err?.response?.data?.message || "Erreur lors de la création";
-
-      if (field === "email") {
-        setErrors([message]);
+        if (field === "email") {
+          setErrors([message]);
+        }
       }
     }
-    };
-  }
+  };
 
   return (
     <div className="bg-white min-h-screen font-[var(--font-geist-sans)] px-6 pt-8 pb-10 sm:px-10 sm:pt-12">
@@ -163,10 +149,7 @@ export default function CreateAccountPage() {
             </button>
           </div>
         </form>
-        
       </div>
-      
     </div>
   );
 }
-

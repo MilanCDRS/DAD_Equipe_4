@@ -16,7 +16,7 @@ export default function Login() {
   const { status, error, isAuthenticated } = useSelector((s) => s.auth);
 
   useEffect(() => {
-    if (isAuthenticated) router.push("/");
+    if (isAuthenticated) router.push("/posts");
   }, [isAuthenticated, router]);
 
   const [email, setEmail] = useState("");
@@ -26,7 +26,7 @@ export default function Login() {
     e.preventDefault();
     try {
       await dispatch(login({ email, password })).unwrap();
-      router.push("/");
+      router.push("/posts");
     } catch (err) {
       alert(`${t("loginFailed")}: ${err.message || t("unknownError")}`);
     }
