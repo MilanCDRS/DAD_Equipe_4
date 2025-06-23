@@ -25,8 +25,12 @@
   "nameRequired": "Nom requis",
   "pseudoRequired": "Pseudo requis",
   "invalidEmail": "Veuillez entrer une adresse email valide",
+<<<<<<< HEAD
   "welcomeText" : "Pas encore implémenté",
   "Logout" : "Deconnexion",
+=======
+  "welcomeText": "Pas encore implémenté",
+>>>>>>> 5b247bd7a55339714dccbbccaad1675689aa5d92
   "birthdateRequired": "Date de naissance requise",
   "passwordMismatch": "Les mots de passe ne correspondent pas",
   "passwordMinLength": "Le mot de passe doit faire au moins 12 caractères",
@@ -40,5 +44,12 @@
   "bioPlaceholder": "Bio",
   "create": "Créer",
   "formValid": "Formulaire valide, envoi…",
-  "pseudo": "Pseudo"
+  "pseudo": "Pseudo",
+  "Posts": "Publications",
+  "Comments": "Commentaires",
+  "Likes": "J'aimes",
+  "profile": "Profil",
+  "editProfile": "Modifier le profil",
+  "Save": "Enregistrer",
+  "searchUser": "Rechercher un utilisateur"
 }

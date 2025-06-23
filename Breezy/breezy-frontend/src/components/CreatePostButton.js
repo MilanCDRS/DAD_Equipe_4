@@ -1,7 +1,6 @@
-"use client";
 import { useRouter } from "next/navigation";
 
-export default function PostButton() {
+export default function CreatePostButton() {
   const router = useRouter();
 
   return (

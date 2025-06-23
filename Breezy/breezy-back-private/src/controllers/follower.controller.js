@@ -54,7 +54,7 @@ exports.getfollowerById = async (req, res) => {
 };
 
 /* GET followers and followings of an user */
-exports.getFollowersAndFollowingsByUsername = async (req, res) =>{
+exports.getFollowersAndFollowingsByUsername = async (req, res) => {
   try {
     const username = req.params.username;
 
@@ -68,7 +68,9 @@ exports.getFollowersAndFollowingsByUsername = async (req, res) =>{
 
     res.status(200).json({
       followers,
-      followings
+      followings,
+      followersCount: followers.length,
+      followingsCount: followings.length
     });
   } catch (err) {
     console.error("Failed to fetch followers/followings", err);
