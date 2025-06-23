@@ -18,8 +18,8 @@
   "birthdate": "Birthdate",
   "loginFailed": "Login failed",
   "cancel": "Cancel",
-  "pseudoChanged" : "Pseudo was already picked. Yours is now " ,
-  "welcomeText" : "Not implemented yet",
+  "pseudoChanged": "Pseudo was already picked. Yours is now ",
+  "welcomeText": "Not implemented yet",
   "createYourAccount": "Create your account",
   "firstLastName": "First and last name",
   "confirmPassword": "Confirm password",
@@ -39,5 +39,6 @@
   "bioPlaceholder": "Bio",
   "create": "Create",
   "formValid": "Form is valid. Submitting!",
-  "pseudo": "Pseudo"
+  "pseudo": "Pseudo",
+  "searchUser": "Search user"
 }

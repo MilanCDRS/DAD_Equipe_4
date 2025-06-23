@@ -1,14 +1,17 @@
-'use client'
-import MyIcon from "@/app/MyIcon";
+"use client";
+
+import BreezyLogo from "@/BreezyLogo";
 import Link from "next/link";
 import { useState } from "react";
 import { useTranslation } from "../../lib/TranslationProvider";
-import { registerUser } from "@/utils/api";
 import { useRouter } from "next/navigation";
+import { useDispatch } from "react-redux";
+import { register } from "@/store/authSlice";
 
 export default function CreateAccountPage() {
   const { t } = useTranslation();
   const router = useRouter();
+  const dispatch = useDispatch();
 
   const [name, setName] = useState("");
   const [pseudo, setPseudo] = useState("");
@@ -24,41 +27,48 @@ export default function CreateAccountPage() {
   const [maxDate] = useState(initialMaxDate);
 
   const isValidEmail = (e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
+  const validatePassword = (pwd) => {
+    const errs = [];
+    if (pwd.length < 12) errs.push(t("passwordMinLength"));
+    if (!/[A-Z]/.test(pwd)) errs.push(t("passwordUppercase"));
+    if (!/[0-9]/.test(pwd)) errs.push(t("passwordNumber"));
+    if (!/[!@#$%^&*(),.?\":{}|<>]/.test(pwd)) errs.push(t("passwordSpecial"));
+    return errs;
+  };
 
-  // Plus aucune validation du password !
   const handleSubmit = async (e) => {
     e.preventDefault();
     const validationErrors = [];
-
     if (!name.trim()) validationErrors.push(t("nameRequired"));
     if (!pseudo.trim()) validationErrors.push(t("pseudoRequired"));
     if (!isValidEmail(email)) validationErrors.push(t("invalidEmail"));
     if (!birthdate) validationErrors.push(t("birthdateRequired"));
     if (password !== confirmPassword)
       validationErrors.push(t("passwordMismatch"));
-
+    validationErrors.push(...validatePassword(password));
     setErrors(validationErrors);
 
     if (validationErrors.length === 0) {
-      const payload = {
-        name: name.trim(),
-        username: pseudo,
-        email,
-        password,
-        dateOfBirth: new Date(birthdate).toISOString(),
-      };
       try {
-        const data = await registerUser(payload);
-        router.push(`/auth/complete-profile/${data.userId}`);
+        // dispatch register thunk, qui renvoie userId + token
+        const result = await dispatch(
+          register({
+            name: name.trim(),
+            username: pseudo,
+            email,
+            password,
+            dateOfBirth: new Date(birthdate).toISOString(),
+          })
+        ).unwrap();
+
+        // si tout est OK, on va sur la complétion de profil
+        router.push(`/auth/complete-profile/${result.userId}`);
         if (data?.user?.username !== pseudo) {
-          alert(`${t("pseudoChanged")} ${data.user.username}`)
+          alert(`${t("pseudoChanged")} ${data.user.username}`);
         }
       } catch (err) {
-        const field = err?.response?.data?.field;
-        const message = err?.response?.data?.message || "Erreur lors de la création";
-        if (field === "email") {
-          setErrors([message]);
-        }
+        const message = err.message || err;
+        setErrors([message]);
       }
     }
   };
@@ -73,7 +83,7 @@ export default function CreateAccountPage() {
             </Link>
           </div>
           <div className="flex-1 flex justify-center">
-            <MyIcon />
+            <BreezyLogo />
           </div>
           <div className="w-[70px]" />
         </div>

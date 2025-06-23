@@ -103,6 +103,18 @@ services:
     networks:
       - app-network
 
+  minio:
+    image: minio/minio
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000" # API S3
+      - "9001:9001" # Console web
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: minio123
+    volumes:
+      - minio-data:/data #persistance des objets
+
 networks:
   app-network:
     driver: bridge
@@ -111,3 +123,4 @@ volumes:
   auth-mongo-data:
   public-mongo-data:
   private-mongo-data:
+  minio-data:

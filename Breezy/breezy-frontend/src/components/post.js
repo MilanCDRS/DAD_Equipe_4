@@ -17,7 +17,7 @@ export default function Post({ post, currentUser }) {
     setIsLiking(true);
     try {
       const res = await axios.put(`/api/public/posts/${post._id}/like`, {
-        username: currentUser.username
+        username: currentUser.username,
       });
       setLikes(res.data.likes);
     } catch {
@@ -38,7 +38,7 @@ export default function Post({ post, currentUser }) {
           displayName: currentUser.displayName || currentUser.name || currentUser.username, // PATCH
           avatarUrl: currentUser.avatarUrl || ""
         },
-        text: commentText
+        text: commentText,
       });
       setComments([...comments, res.data]);
       setCommentText("");
@@ -53,25 +53,35 @@ export default function Post({ post, currentUser }) {
       <div className="flex gap-3 items-center mb-2">
         {/* Avatar */}
         <div className="w-12 h-12 rounded-full bg-gray-300 overflow-hidden">
-          {post.user?.avatarUrl
-            ? <img src={post.user.avatarUrl} alt="avatar" className="w-full h-full object-cover" />
-            : <span className="block w-full h-full" />}
+          {post.user?.avatarUrl ? (
+            <img
+              src={post.user.avatarUrl}
+              alt="avatar"
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <span className="block w-full h-full" />
+          )}
         </div>
         <div>
           <div className="font-bold text-black">{post.user?.displayName || post.user?.username || "Utilisateur"}</div>
           <div className="text-gray-600 text-sm">@{post.user?.username || "inconnu"}</div>
         </div>
         <div className="ml-auto text-xs text-gray-500">
-          {post.createdAt ? new Date(post.createdAt).toLocaleDateString("fr-FR") : ""}
+          {post.createdAt
+            ? new Date(post.createdAt).toLocaleDateString("fr-FR")
+            : ""}
         </div>
       </div>
-      <div className="mb-2 text-base text-black">
-        {post.content}
-      </div>
+      <div className="mb-2 text-base text-black">{post.content}</div>
       {post.image && post.image.length > 10 && (
         <div className="mb-2 rounded-xl overflow-hidden bg-white">
           <img
-            src={post.image.startsWith('data:') ? post.image : `data:image/*;base64,${post.image}`}
+            src={
+              post.image.startsWith("data:")
+                ? post.image
+                : `data:image/*;base64,${post.image}`
+            }
             alt="post"
             className="w-full max-h-80 object-contain bg-white"
             style={{ display: "block", margin: "0 auto" }}
@@ -83,7 +93,9 @@ export default function Post({ post, currentUser }) {
         <button
           onClick={currentUser ? handleLike : undefined}
           disabled={isLiking}
-          className={`flex items-center gap-1 ${alreadyLiked ? "text-red-500" : "text-gray-600"} focus:outline-none`}
+          className={`flex items-center gap-1 ${
+            alreadyLiked ? "text-red-500" : "text-gray-600"
+          } focus:outline-none`}
         >
           {alreadyLiked ? "❤️" : "🤍"} <span>{likes.length}</span>
         </button>
@@ -105,9 +117,15 @@ export default function Post({ post, currentUser }) {
             {comments.map((com, idx) => (
               <div key={idx} className="flex items-start gap-2">
                 <div className="w-7 h-7 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
-                  {com.user?.avatarUrl
-                    ? <img src={com.user.avatarUrl} alt="avatar" className="w-full h-full object-cover" />
-                    : <span className="block w-full h-full" />}
+                  {com.user?.avatarUrl ? (
+                    <img
+                      src={com.user.avatarUrl}
+                      alt="avatar"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="block w-full h-full" />
+                  )}
                 </div>
                 <div className="flex-1">
                   {/* PATCH : nom d’utilisateur, puis fallback username */}
@@ -115,7 +133,11 @@ export default function Post({ post, currentUser }) {
                   <div className="text-xs text-gray-500">@{com.user?.username}</div>
                   {/* PATCH : commentaire toujours noir */}
                   <div className="text-black text-sm">{com.text}</div>
-                  <div className="text-xs text-gray-400">{com.createdAt ? new Date(com.createdAt).toLocaleDateString("fr-FR") : ""}</div>
+                  <div className="text-xs text-gray-400">
+                    {com.createdAt
+                      ? new Date(com.createdAt).toLocaleDateString("fr-FR")
+                      : ""}
+                  </div>
                 </div>
               </div>
             ))}
@@ -125,8 +147,9 @@ export default function Post({ post, currentUser }) {
             <input
               type="text"
               value={commentText}
-              onChange={e => setCommentText(e.target.value)}
+              onChange={(e) => setCommentText(e.target.value)}
               className="flex-1 border rounded px-3 py-1 text-sm text-black"
+              className="flex-1 border rounded px-3 py-1 text-sm"
               placeholder="Ajouter un commentaire…"
               disabled={isCommenting}
               maxLength={200}

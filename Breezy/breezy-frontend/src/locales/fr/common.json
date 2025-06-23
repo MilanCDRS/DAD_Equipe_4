@@ -25,7 +25,7 @@
   "nameRequired": "Nom requis",
   "pseudoRequired": "Pseudo requis",
   "invalidEmail": "Veuillez entrer une adresse email valide",
-  "welcomeText" : "Pas encore implémenté",
+  "welcomeText": "Pas encore implémenté",
   "birthdateRequired": "Date de naissance requise",
   "passwordMismatch": "Les mots de passe ne correspondent pas",
   "passwordMinLength": "Le mot de passe doit faire au moins 12 caractères",
@@ -39,5 +39,6 @@
   "bioPlaceholder": "Bio",
   "create": "Créer",
   "formValid": "Formulaire valide, envoi…",
-  "pseudo": "Pseudo"
+  "pseudo": "Pseudo",
+  "searchUser": "Rechercher un utilisateur"
 }

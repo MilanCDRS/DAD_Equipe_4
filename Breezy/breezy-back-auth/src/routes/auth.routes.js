@@ -9,6 +9,7 @@ const router = express.Router();
 const authController = require("../controllers/auth.controller");
 const requiredFields = require("../middlewares/requiredFields.middleware");
 const { authenticate } = authController;
+const upload = require("../middlewares/upload.middleware");
 
 router.post(
   "/register",
@@ -26,6 +27,13 @@ router.post("/refresh-token", authController.refreshToken);
 
 router.get("/authenticate", authController.authenticate);
 
-router.patch("/profile", authenticate, authController.updateProfile);
+router.patch(
+  "/profile",
+  authenticate, // le middleware jtwt
+  upload.single("avatar"), // multer va traiter le champ "avatar"
+  authController.updateProfile
+);
+
+router.post("/logout", authController.logout);
 
 module.exports = router;

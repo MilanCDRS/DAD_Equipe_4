@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import MyIcon from "@/app/MyIcon";
+import BreezyLogo from "@/BreezyLogo";
 import { login } from "@/store/authSlice";
 import { useTranslation } from "@/app/lib/TranslationProvider";
 
@@ -13,11 +13,12 @@ export default function Login() {
   const dispatch = useDispatch();
   const router = useRouter();
   const { t } = useTranslation();
-  const { status, error, isAuthenticated } = useSelector((s) => s.auth);
+  const { status, error } = useSelector((s) => s.auth);
+  const { token } = useSelector((state) => state.auth);
 
   useEffect(() => {
-    if (isAuthenticated) router.push("/posts");
-  }, [isAuthenticated, router]);
+    if (token) router.push("/");
+  }, [token]);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -36,7 +37,7 @@ export default function Login() {
     <div className="bg-white min-h-screen px-6 pt-8 pb-10 sm:px-10 sm:pt-12 font-[var(--font-geist-sans)]">
       <div className="max-w-md mx-auto w-full">
         <div className="flex justify-center mb-10">
-          <MyIcon width={100} height={100} />
+          <BreezyLogo width={100} height={100} />
         </div>
 
         <h1
@@ -49,7 +50,6 @@ export default function Login() {
             {t("createAccount")}
           </button>
         </Link>
-        
 
         <div className="flex items-center justify-center mb-6">
           <div className="flex-grow h-px bg-black" />
