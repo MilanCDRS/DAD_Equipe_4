@@ -6,7 +6,7 @@ import { useState } from "react";
 import { useTranslation } from "../../lib/TranslationProvider";
 import { useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
-import { register } from "@/store/userSlice";
+import { register } from "@/store/authSlice";
 
 export default function CreateAccountPage() {
   const { t } = useTranslation();
@@ -63,7 +63,7 @@ export default function CreateAccountPage() {
         ).unwrap();
 
         // si tout est OK, on va sur la complétion de profil
-        router.push(`/auth/complete-profile/${data.userId}`);
+        router.push(`/auth/complete-profile/${result.userId}`);
         if (data?.user?.username !== pseudo) {
           alert(`${t("pseudoChanged")} ${data.user.username}`);
         }

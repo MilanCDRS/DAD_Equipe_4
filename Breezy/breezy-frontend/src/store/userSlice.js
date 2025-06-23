@@ -1,85 +1,82 @@
-// src/store/userSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import apiClient from "@/utils/api"; // axios avec token dans l’intercepteur
+import apiClient from "../utils/api";
 
-// Récupérer le profil complet de l’utilisateur (qui est déjà authentifié)
+// Charge les infos complètes du user
 export const getProfile = createAsyncThunk(
   "user/getProfile",
   async (_, { getState, rejectWithValue }) => {
-    const { userId } = getState().auth; // on lit l’ID depuis authSlice
+    const userId = getState().auth.user?.userId;
     try {
-      const res = await apiClient.get(`/users/${userId}`);
-      return res.data; // { _id, username, email, role, bio, avatar, … }
+      const { data } = await apiClient.get(`/users/${userId}`);
+      return data;
     } catch (err) {
-      return rejectWithValue(err.response?.data || err.message);
+      return rejectWithValue(err.message || err);
     }
   }
 );
 
+// Update bio + avatar
 export const updateProfile = createAsyncThunk(
   "user/updateProfile",
-  async (profileData, { rejectWithValue }) => {
+  async ({ bio, avatar }, { rejectWithValue }) => {
     try {
-      const res = await apiClient.patch("/auth/profile", profileData);
-      return res.user; // { userId, username, email, role, bio, avatar }
+      const form = new FormData();
+      form.append("bio", bio);
+      if (avatar) form.append("avatar", avatar);
+      const { data } = await apiClient.patch("/auth/profile", form, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      return data.user;
     } catch (err) {
-      return rejectWithValue(err.response?.data || err.message);
+      return rejectWithValue(err.message || err);
     }
   }
 );
 
-const initialState = {
-  user: null, // contiendra username, email, bio, avatar…
-  status: "idle", // idle | loading | succeeded | failed
-  error: null,
-};
-
+const initialState = { user: null, status: "idle", error: null };
 const userSlice = createSlice({
   name: "user",
   initialState,
   reducers: {
-    // permet de vider les infos profil à la déconnexion
-    clearProfile(state) {
-      state.user = null;
-      state.status = "idle";
-      state.error = null;
+    clearProfile(s) {
+      s.user = null;
+      s.status = "idle";
+      s.error = null;
     },
   },
-  extraReducers: (builder) => {
-    builder
-      // GET PROFILE
-      .addCase(getProfile.pending, (state) => {
-        state.status = "loading";
-        state.error = null;
-      })
-      .addCase(getProfile.fulfilled, (state, { payload }) => {
-        state.status = "succeeded";
-        state.user = {
-          userId: payload._id,
-          username: payload.username,
-          email: payload.email,
-          role: payload.role,
-          bio: payload.bio,
-          avatar: payload.avatar,
+  extraReducers: (b) => {
+    b.addCase(getProfile.pending, (s) => {
+      s.status = "loading";
+      s.error = null;
+    })
+      .addCase(getProfile.fulfilled, (s, a) => {
+        s.status = "succeeded";
+        const p = a.payload;
+        s.user = {
+          userId: p._id,
+          username: p.username,
+          email: p.email,
+          role: p.role,
+          bio: p.bio,
+          avatar: p.avatar,
         };
       })
-      .addCase(getProfile.rejected, (state, { payload, error }) => {
-        state.status = "failed";
-        state.error = payload || error.message;
+      .addCase(getProfile.rejected, (s, a) => {
+        s.status = "failed";
+        s.error = a.payload;
       })
 
-      // UPDATE PROFILE
-      .addCase(updateProfile.pending, (state) => {
-        state.status = "loading";
-        state.error = null;
+      .addCase(updateProfile.pending, (s) => {
+        s.status = "loading";
+        s.error = null;
       })
-      .addCase(updateProfile.fulfilled, (state, { payload }) => {
-        state.status = "succeeded";
-        state.user = { ...state.user, ...payload };
+      .addCase(updateProfile.fulfilled, (s, a) => {
+        s.status = "succeeded";
+        s.user = { ...s.user, ...a.payload };
       })
-      .addCase(updateProfile.rejected, (state, { payload, error }) => {
-        state.status = "failed";
-        state.error = payload || error.message;
+      .addCase(updateProfile.rejected, (s, a) => {
+        s.status = "failed";
+        s.error = a.payload;
       });
   },
 });

@@ -85,6 +85,7 @@ exports.login = async (req, res) => {
   }
 };
 
+// extrait le token JWT et le vérifie, on l'insère avant tous les handlers qui doivrent être accessibles par un utilisateur connecté
 exports.authenticate = (req, res, next) => {
   const token = req.headers["authorization"]?.split(" ")[1];
   if (!token) return res.sendStatus(401);
@@ -97,24 +98,26 @@ exports.authenticate = (req, res, next) => {
     next();
   });
 };
-
 exports.updateProfile = async (req, res) => {
   try {
-    // on récupère directement userId depuis le token
     const userId = req.userId;
-    const { bio, avatar } = req.body;
+    const { bio } = req.body;
+    const update = { bio };
 
-    // traitement du fichier image si nécessaire…
-    const updateFields = { bio };
-    if (avatar) updateFields.avatar = avatar; // adapter selon upload
+    // Si multer a uploadé un fichier, req.file contient ses infos
+    if (req.file) {
+      // URL publique en partant de votre dossier /public
+      update.avatar = `/uploads/${req.file.filename}`;
+    }
 
-    const updated = await User.findByIdAndUpdate(userId, updateFields, {
+    const updated = await User.findByIdAndUpdate(userId, update, {
       new: true,
       runValidators: true,
     }).select("-passwordHash");
 
-    if (!updated)
+    if (!updated) {
       return res.status(404).json({ message: "Utilisateur introuvable" });
+    }
     res.status(200).json({ message: "Profil mis à jour", user: updated });
   } catch (err) {
     console.error("Update profile failed:", err);
