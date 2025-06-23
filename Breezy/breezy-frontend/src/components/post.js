@@ -35,8 +35,9 @@ export default function Post({ post, currentUser }) {
       const res = await axios.post(`/api/public/posts/${post._id}/comments`, {
         user: {
           username: currentUser.username,
-          displayName: currentUser.displayName || currentUser.name || currentUser.username, // PATCH
-          avatarUrl: currentUser.avatarUrl || ""
+          displayName:
+            currentUser.displayName || currentUser.name || currentUser.username, // PATCH
+          avatarUrl: currentUser.avatarUrl || "",
         },
         text: commentText,
       });
@@ -64,8 +65,12 @@ export default function Post({ post, currentUser }) {
           )}
         </div>
         <div>
-          <div className="font-bold text-black">{post.user?.displayName || post.user?.username || "Utilisateur"}</div>
-          <div className="text-gray-600 text-sm">@{post.user?.username || "inconnu"}</div>
+          <div className="font-bold text-black">
+            {post.user?.displayName || post.user?.username || "Utilisateur"}
+          </div>
+          <div className="text-gray-600 text-sm">
+            @{post.user?.username || "inconnu"}
+          </div>
         </div>
         <div className="ml-auto text-xs text-gray-500">
           {post.createdAt
@@ -129,8 +134,14 @@ export default function Post({ post, currentUser }) {
                 </div>
                 <div className="flex-1">
                   {/* PATCH : nom d’utilisateur, puis fallback username */}
-                  <div className="text-sm font-medium text-black">{com.user?.displayName || com.user?.username || "Utilisateur"}</div>
-                  <div className="text-xs text-gray-500">@{com.user?.username}</div>
+                  <div className="text-sm font-medium text-black">
+                    {com.user?.displayName ||
+                      com.user?.username ||
+                      "Utilisateur"}
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    @{com.user?.username}
+                  </div>
                   {/* PATCH : commentaire toujours noir */}
                   <div className="text-black text-sm">{com.text}</div>
                   <div className="text-xs text-gray-400">
@@ -149,7 +160,6 @@ export default function Post({ post, currentUser }) {
               value={commentText}
               onChange={(e) => setCommentText(e.target.value)}
               className="flex-1 border rounded px-3 py-1 text-sm text-black"
-              className="flex-1 border rounded px-3 py-1 text-sm"
               placeholder="Ajouter un commentaire…"
               disabled={isCommenting}
               maxLength={200}

@@ -40,5 +40,11 @@
   "create": "Créer",
   "formValid": "Formulaire valide, envoi…",
   "pseudo": "Pseudo",
+  "Posts": "Publications",
+  "Comments": "Commentaires",
+  "Likes": "J'aimes",
+  "profile": "Profil",
+  "editProfile": "Modifier le profil",
+  "Save": "Enregistrer",
   "searchUser": "Rechercher un utilisateur"
 }

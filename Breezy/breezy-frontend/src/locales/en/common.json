@@ -40,5 +40,11 @@
   "create": "Create",
   "formValid": "Form is valid. Submitting!",
   "pseudo": "Pseudo",
+  "Posts": "Posts",
+  "Comments": "Comments",
+  "Likes": "Likes",
+  "profile": "Profile",
+  "editProfile": "Edit profile",
+  "Save": "Save",
   "searchUser": "Search user"
 }

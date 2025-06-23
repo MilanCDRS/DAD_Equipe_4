@@ -36,10 +36,14 @@ export default function PostsPage() {
       .finally(() => setLoading(false));
   }, [isAuth]);
 
-  // Pendant la redirection, on peut montrer un loader
+  // Chargement
   if (!isAuth || loading) {
     return <div className="text-center text-black py-10">Chargement...</div>;
   }
+
+  const handleProfile = () => {
+    router.push("/profilePages/profile");
+  };
 
   return (
     <div className="bg-[#f7f9fa] min-h-screen flex flex-col">

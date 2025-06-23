@@ -3,7 +3,7 @@ import Cookies from "js-cookie";
 
 const apiClient = axios.create({
   baseURL: "https://localhost/api",
-  timeout: 10000, // Timeout de 10 seconds
+  timeout: 2000, // Timeout de 2 seconds
   headers: {
     "Content-Type": "application/json",
   },
@@ -52,7 +52,7 @@ export const registerUser = async (userData) => {
  * GET /users/:id
  */
 export const getUserById = async (userId) => {
-  const response = await apiClient.get(`/${userId}`);
+  const response = await apiClient.get(`/users/${userId}`);
   return response.data;
 };
 
@@ -70,7 +70,12 @@ export const updateProfile = async (profileData) => {
  * GET /users
  */
 export const getAllUsers = async () => {
-  const response = await apiClient.get("/");
+  const response = await apiClient.get("/users/");
+  return response.data;
+};
+
+export const getUsersFollowers = async (username) => {
+  const response = await apiClient.post(`/followers/user/${username}`);
   return response.data;
 };
 
