@@ -16,14 +16,14 @@ export default function SearchBar({ onSearch }) {
   };
 
   return (
-    <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-full px-4 py-2 mb-6">
-      <SearchIcon className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+    <div className="flex items-center w-full max-w-md mx-auto my-8 bg-white border-2 border-blue-400 rounded-full px-4 py-2 shadow-sm">
+      <SearchIcon className="w-5 h-5 text-blue-400" />
       <input
         type="text"
         value={query}
         onChange={handleChange}
-        placeholder={t("searchUser")}
-        className="ml-3 bg-transparent flex-1 outline-none placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-gray-100"
+        placeholder={t("searchUser") || "Search User"}
+        className="ml-3 bg-transparent flex-1 outline-none placeholder-gray-500 text-gray-900"
       />
     </div>
   );
