@@ -7,8 +7,8 @@ import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "@/app/lib/TranslationProvider";
-import { getUserById, getUsersFollowers } from "@/utils/api";
 import Post from "@/components/post";
+import Footer from "@/components/Footer";
 
 export default function ProfileCard() {
   const dispatch = useDispatch();
@@ -23,24 +23,17 @@ export default function ProfileCard() {
   }, [isAuth, router]);
 
   if (!isAuth) return <p>{t("loading")}</p>;
+  if (!user) return <p>{t("loading")}</p>;
+  
+  const [bio, setBio] = useState("");
+  const [avatar, setAvatar] = useState(defaultAvatar);
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const res = await axios.get(`/api/user/${user?.userId}`);
-        if (res.data) {
-          user.bio = res.data.bio || "";
-          user.avatar = res.data.avatar || "";
-        }
-      } catch (error) {
-        console.error("Error fetching user profile:", error);
-      }
-    };
-    if (user?.userId) fetchProfile();
+    if (user?.userId) fetchUsersData(user.userId);
   }, [user?.userId]);
 
   const [followersCount, setFollowersCount] = useState(0);
-  const [followingsCount, setFollowingsCount] = useState(0);
+  const [followingsCount, setFollowingsCount] = useState(0);  
 
   const fetchFollowersData = async (username) => {
     try {
@@ -58,20 +51,44 @@ export default function ProfileCard() {
 
 
   // recupération des posts, commentaires et likes
-  const [posts, setPosts] = useState([]);
-  const [comments, setComments] = useState([]);
-  const [likes, setLikes] = useState([]);
+  const [userPosts, setUserPosts] = useState([]);
+  const [commentedPosts, setCommentesPosts] = useState([]);
+  const [likedPosts, setLikedPosts] = useState([]);
 
   useEffect(() => {
     const fetchPosts = async () => {
       try {
         const res = await axios.get(`/api/public/posts/user/${user?.username}`);
-        setPosts(res.data || []);
+        setUserPosts(res.data || []);
       } catch (error) {
         console.error("Error fetching user posts:", error);
       }
     };
     if (user?.username) fetchPosts();
+  }, [user?.username]);
+
+  useEffect(() => {
+    const fetchComments = async () => {
+      try{
+        const res = await axios.get(`/api/public/posts/commented/user/${user?.username}`);
+        setCommentesPosts(res.data || []);
+      }catch (error){
+        console.error("Error fetching user comments :", error);
+      }
+    };
+    if (user?.username) fetchComments();
+  }, [user?.username]);
+
+  useEffect(() => {
+    const fetchLikes = async () => {
+      try{
+        const res = await axios.get(`/api/public/posts/liked/user/${user?.username}`);
+        setLikedPosts(res.data || []);
+      }catch (error){
+        console.error("Error fetching user comments :", error);
+      }
+    };
+    if (user?.username) fetchLikes();
   }, [user?.username]);
 
 
@@ -81,20 +98,40 @@ export default function ProfileCard() {
     switch (activeTab) {
       case 'posts':
         return (
-          posts.length === 0 ? (
+          userPosts.length === 0 ? (
             <div className="text-center text-black py-10">
               Aucun post pour le moment
             </div>
           ) : (
-            posts.map((post) => (
+            userPosts.map((post) => (
               <Post key={post._id} post={post} currentUser={user} />
             ))
           )
         );
       case 'comments':
-        return <p>Voici les commentaires...</p>;
+        return (
+          commentedPosts.length === 0 ? (
+            <div className="text-center text-black py-10">
+              Aucun post commenté pour le moment
+            </div>
+          ) : (
+            commentedPosts.map((post) => (
+              <Post key={post._id} post={post} currentUser={user} />
+            ))
+          )
+        );
       case 'likes':
-        return <p>Voici les likes...</p>;
+        return (
+          likedPosts.length === 0 ? (
+            <div className="text-center text-black py-10">
+              Aucun post liké pour le moment
+            </div>
+          ) : (
+            likedPosts.map((post) => (
+              <Post key={post._id} post={post} currentUser={user} />
+            ))
+          )
+        );
       default:
         return null;
     }
@@ -122,7 +159,7 @@ export default function ProfileCard() {
               {/* Profile Picture */}
               <div className="absolute -bottom-10 left-5">
                 <Image
-                  src={defaultAvatar}
+                  src={avatar || defaultAvatar}
                   alt="Profile"
                   width={96}
                   height={96}
@@ -144,7 +181,7 @@ export default function ProfileCard() {
                 </button>
               </div>
 
-              <p className="mt-2 text-sm text-gray-600">{user?.bio}</p>
+              <p className="mt-2 text-sm text-gray-600">{bio}</p>
 
               <div className="flex items-center text-sm text-gray-500 mt-2">
                 <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
@@ -189,6 +226,9 @@ export default function ProfileCard() {
             {renderTabContent()}
           </div>
         </div>
+      </div>
+      <div className="fixed bottom-0 left-0 w-full z-20">
+        <Footer />
       </div>
     </div>
   );
