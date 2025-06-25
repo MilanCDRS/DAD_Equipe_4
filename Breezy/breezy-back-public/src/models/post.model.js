@@ -1,14 +1,26 @@
 const mongoose = require('mongoose');
 
-const commentSchema = new mongoose.Schema({
+const replySchema = new mongoose.Schema({
   user: {
     username: String,
     displayName: String,
-    avatarUrl: String
+    avatarUrl : String
   },
   text: String,
   createdAt: { type: Date, default: Date.now }
 });
+
+const commentSchema = new mongoose.Schema({
+  user: {
+    username: String,
+    displayName: String,
+    avatarUrl : String
+  },
+  text: String,
+  createdAt: { type: Date, default: Date.now },
+  replies: [replySchema] 
+});
+
 
 const postSchema = new mongoose.Schema({
   user: {

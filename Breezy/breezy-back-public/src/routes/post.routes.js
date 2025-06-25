@@ -60,21 +60,40 @@ router.put('/posts/:id/like', async (req, res) => {
 
 // Ajouter un commentaire
 router.post('/posts/:id/comments', async (req, res) => {
-  const { text, user } = req.body;
+  const { text, user, parentCommentId } = req.body;
   const post = await Post.findById(req.params.id);
-  if (!post) return res.status(404).json({ error: "Not found" });
+  if (!post) return res.status(404).json({ error: "Post non trouvé" });
 
-  const comment = {
-    user, // { username, displayName, avatarUrl }
-    text,
-    createdAt: new Date()
-  };
-  post.comments.push(comment);
-  await post.save();
-  res.status(201).json(comment);
+  if (!parentCommentId) {
+    const comment = {
+      user,
+      text,
+      createdAt: new Date()
+    };
+    post.comments.push(comment);
+    await post.save();
+
+    const added = post.comments[post.comments.length - 1];
+    return res.status(201).json({ type: "comment", comment: added });
+  } else {
+    const parentComment = post.comments.id(parentCommentId); 
+
+    if (!parentComment) {
+      return res.status(400).json({ error: "Commentaire parent introuvable" });
+    }
+    parentComment.replies.push({
+      user,
+      text,
+      createdAt: new Date()
+    });
+    await post.save();
+    const addedReply = parentComment.replies[parentComment.replies.length - 1];
+    return res.status(201).json({ type: "reply", reply: addedReply });
+  }
 });
 
-// Recuperer les posts commentés par un user 
+
+
 router.get('/posts/commented/user/:username', async (req, res) => {
   const { username } = req.params;
   const posts = await Post.find({ 'comments.user.username': username }).sort({ createdAt: -1 });
