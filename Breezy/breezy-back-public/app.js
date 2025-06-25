@@ -1,5 +1,7 @@
+// src/app.js (Public)
 const express = require("express");
 const cors = require("cors");
+const cookieParser = require("cookie-parser");
 
 const app = express();
 
@@ -10,13 +12,12 @@ app.use(
   })
 );
 
+app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-const postRoutes = require("./src/routes/post.routes");
-app.use("/", postRoutes);
-const followerRoutes = require("./src/routes/follower.routes");
-app.use("/follower", followerRoutes);
+app.use("/api/posts", require("./src/routes/post.routes"));
+app.use("/api/follower", require("./src/routes/follower.routes"));
 
 app.get("/", (req, res) => {
   res.json({ msg: "Welcome to the public API" });

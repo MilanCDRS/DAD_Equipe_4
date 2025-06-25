@@ -5,7 +5,7 @@ module.exports = (err, req, res, next) => {
 
   // MongoDB duplicate key (code 11000)
   if (err.code === 11000) {
-    const duplicatedField = Object.keys(err.keyValue)[0]; 
+    const duplicatedField = Object.keys(err.keyValue)[0];
     const value = err.keyValue[duplicatedField];
 
     return res.status(409).json({

@@ -30,17 +30,27 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleLogout = () => {
-    dispatch(logoutAction());
-    router.push("/auth/login");
-    setOpen(false);
+  const handleLogout = async () => {
+    try {
+      // on appelle l'API qui clear les cookies httpOnly
+      await dispatch(logoutAction()).unwrap();
+      // puis on vide le store et redirige
+      router.push("/auth/login");
+    } catch (err) {
+      console.error("Logout failed:", err);
+      alert("Déconnexion impossible pour le moment.");
+    } finally {
+      setOpen(false);
+    }
   };
-
   return (
     <>
       <header className="fixed top-0 left-0 w-full bg-white shadow-md z-20">
         <nav className="container mx-auto flex items-center justify-center space-x-24 h-16">
-          <Link href="/profilePages/profile" className="text-black hover:text-blue-500">
+          <Link
+            href="/profilePages/profile"
+            className="text-black hover:text-blue-500"
+          >
             <UserIcon size={24} />
           </Link>
 

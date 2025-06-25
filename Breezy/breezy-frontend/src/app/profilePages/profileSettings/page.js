@@ -1,13 +1,12 @@
 "use client";
 
-import Link from "next/link";
 import BreezyLogo from "@/BreezyLogo";
 import { useState } from "react";
 import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useTranslation } from "@/app/lib/TranslationProvider";
-import { useParams } from "next/navigation";
 import { useRouter } from "next/navigation";
+import { updateProfile } from "@/store/userSlice";
 
 import Image from "next/image";
 import defaultAvatar from "@/app/images/defaultAvatar.png";
@@ -71,7 +70,7 @@ export default function SettingsProfilePage() {
             </button>
           </div>
           <div className="flex-1 flex justify-center">
-            <BreezyLogo  width={24} height={24} />
+            <BreezyLogo width={24} height={24} />
           </div>
           <div className="w-[70px]" />
         </div>

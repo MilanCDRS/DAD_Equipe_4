@@ -2,80 +2,69 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useSelector } from "react-redux"; // AJOUT pour récupérer le user connecté
-import axios from "axios";
+import { useSelector, useDispatch } from "react-redux";
+import { addPost } from "@/store/postsSlice"; // votre thunk
 
 export default function CreatePostPage() {
-  const isAuth = useSelector((s) => s.auth.isAuthenticated); // AUTH
-  const currentUser = useSelector((s) => s.auth.user); // USER CONNECTÉ
-
-  const [text, setText] = useState('');
-  const [image, setImage] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const fileInputRef = useRef();
+  const dispatch = useDispatch();
   const router = useRouter();
 
+  // --- 1) Sélection de l’état d’auth et du statut de création
+  const isAuth = useSelector((s) => s.auth.isAuthenticated);
+  const postStatus = useSelector((s) => s.posts.status);
+  const isLoading = postStatus === "loading";
+
+  // --- 2) États locaux pour le contenu du post
+  const [text, setText] = useState("");
+  const [image, setImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const fileInputRef = useRef();
   const MAX_IMAGE_SIZE = 2 * 1024 * 1024; // 2 Mo
 
-  // Protection : redirige si non connecté
+  // --- 3) Redirection si non connecté
   useEffect(() => {
-    if (!isAuth) {
-      router.replace("/auth/login");
-    }
+    if (!isAuth) router.replace("/auth/login");
   }, [isAuth, router]);
 
+  // --- 4) Envoi du post via le thunk `addPost`
   const handleSend = async () => {
     if (!text.trim() && !image) return;
-    setLoading(true);
+
+    const formData = new FormData();
+    formData.append("content", text);
+    if (image) formData.append("image", image);
+
     try {
-      const formData = new FormData();
-      formData.append("content", text);
-      if (image) formData.append("image", image);
+      // dispatch du thunk, qui fait l’API et met à jour `state.posts.list`
+      await dispatch(addPost(formData)).unwrap();
 
-      // ENVOIE AUSSI LE USER CONNECTÉ
-      formData.append("user", JSON.stringify({
-        username: currentUser?.username,
-        displayName: currentUser?.displayName || currentUser?.name || currentUser?.username
-      }));
-
-      await axios.post(
-        "/api/public/posts",
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-          withCredentials: true
-        }
-      );
-
+      // reset de l’UI et retour à la liste
       setText("");
       setImage(null);
       setImagePreview(null);
       router.push("/");
     } catch (err) {
-      alert("Erreur lors de l'envoi du post !");
-      console.error(err);
-    } finally {
-      setLoading(false);
+      console.error("addPost failed:", err);
+      alert("Erreur lors de l'envoi du post : " + err);
     }
   };
 
   const handleCancel = () => router.back();
 
+  // --- 5) Gestion locale de l’aperçu d’image
   const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      if (file.size > MAX_IMAGE_SIZE) {
-        alert("L'image est trop grande (max 2Mo)");
-        return;
-      }
-      setImage(file);
-      setImagePreview(URL.createObjectURL(file));
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > MAX_IMAGE_SIZE) {
+      return alert("L'image est trop grande (max 2 Mo).");
     }
+    setImage(file);
+    setImagePreview(URL.createObjectURL(file));
   };
 
-  if (!isAuth) return <div>Chargement...</div>; // Affiche un loader si pas encore auth
-
+  if (!isAuth) {
+    return <div>Chargement…</div>;
+  }
   return (
     <div className="min-h-screen bg-white flex flex-col items-center">
       <div className="w-full max-w-md mx-auto flex items-center px-4 pt-4 pb-2">
@@ -87,15 +76,15 @@ export default function CreatePostPage() {
         </button>
         <div className="flex-1" />
         <button
-          disabled={(!text.trim() && !image) || loading}
+          disabled={(!text.trim() && !image) || isLoading}
           onClick={handleSend}
           className={`rounded-full px-5 py-1.5 text-white font-semibold transition ${
-            (!text.trim() && !image) || loading
+            (!text.trim() && !image) || isLoading
               ? "bg-blue-100 text-blue-200 cursor-not-allowed"
               : "bg-blue-400 hover:bg-blue-500"
           }`}
         >
-          {loading ? "..." : "Send"}
+          {isLoading ? "..." : "Send"}
         </button>
       </div>
       <main className="w-full max-w-md flex-1 px-4 flex flex-col">

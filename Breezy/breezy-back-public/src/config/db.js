@@ -6,9 +6,9 @@
 const mongoose = require("mongoose");
 
 // Récupération des variables d'environnement de la DB
-const { MONGO_HOST, MONGO_PORT, MONGO_DATABASE_NAME } = process.env;
+const { MONGO_HOST_PUBLIC, MONGO_PORT_PUBLIC, MONGO_DB_PUBLIC } = process.env;
 
-const MONGODB_URI = `mongodb://${MONGO_HOST}:${MONGO_PORT}/${MONGO_DATABASE_NAME}`;
+const MONGODB_URI = `mongodb://${MONGO_HOST_PUBLIC}:${MONGO_PORT_PUBLIC}/${MONGO_DB_PUBLIC}`;
 
 const connectDB = async () => {
   try {

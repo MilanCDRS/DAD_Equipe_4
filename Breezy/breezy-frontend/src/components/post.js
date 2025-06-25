@@ -1,52 +1,46 @@
+// src/components/Post.js
+"use client";
 import { useState } from "react";
-import axios from "axios";
+import { useDispatch, useSelector } from "react-redux";
+import { toggleLike, postComment } from "@/store/postsSlice";
 
-export default function Post({ post, currentUser }) {
-  if (!post) return null;
-  const [likes, setLikes] = useState(post.likes || []);
-  const [comments, setComments] = useState(post.comments || []);
-  const [showComments, setShowComments] = useState(false);
+export default function Post({ post }) {
+  const dispatch = useDispatch();
+  const currentUser = useSelector((s) => s.auth.user);
+  const isAuth = useSelector((s) => s.auth.isAuthenticated);
+
+  // on extrait depuis le store, pour garder la source de vérité
+  const storePost =
+    useSelector((s) => s.posts.list.find((p) => p._id === post._id)) || post;
+
+  const alreadyLiked = isAuth && storePost.likes.includes(currentUser.username);
   const [commentText, setCommentText] = useState("");
+  const [showComments, setShowComments] = useState(false);
+  const { likes = [], comments = [] } = storePost;
+
   const [isLiking, setIsLiking] = useState(false);
   const [isCommenting, setIsCommenting] = useState(false);
 
-  const alreadyLiked = currentUser && likes.includes(currentUser.username);
-
-  const handleLike = async () => {
-    if (!currentUser) return alert("Connecte-toi pour liker");
+  const handleLike = () => {
+    if (!isAuth) return alert("Connecte-toi pour liker");
     setIsLiking(true);
-    try {
-      const res = await axios.put(`/api/public/posts/${post._id}/like`, {
-        username: currentUser.username,
-      });
-      setLikes(res.data.likes);
-    } catch {
-      alert("Erreur lors du like !");
-    }
-    setIsLiking(false);
+    dispatch(toggleLike(post._id))
+      .unwrap()
+      .catch(() => {
+        alert("Erreur lors du like !");
+      })
+      .finally(() => setIsLiking(false));
   };
 
-  // PATCH ICI: toujours envoyer un displayName correct au backend
-  const handleAddComment = async () => {
-    if (!currentUser) return alert("Connecte-toi pour commenter");
+  const handleAddComment = () => {
+    if (!isAuth) return alert("Connecte-toi pour commenter");
     if (!commentText.trim()) return;
     setIsCommenting(true);
-    try {
-      const res = await axios.post(`/api/public/posts/${post._id}/comments`, {
-        user: {
-          username: currentUser.username,
-          displayName:
-            currentUser.displayName || currentUser.name || currentUser.username, // PATCH
-          avatarUrl: currentUser.avatarUrl || "",
-        },
-        text: commentText,
-      });
-      setComments([...comments, res.data]);
-      setCommentText("");
-    } catch {
-      alert("Erreur lors de l'ajout du commentaire !");
-    }
-    setIsCommenting(false);
+    dispatch(postComment({ postId: post._id, text: commentText }))
+      .unwrap()
+      .then(() => setCommentText(""))
+      .catch(() => alert("Erreur lors de l'ajout du commentaire !"))
+      .finally(() => setIsCommenting(false));
   };
 
   return (
@@ -97,7 +91,7 @@ export default function Post({ post, currentUser }) {
       <div className="flex gap-6 pt-2 text-gray-800 items-center">
         <button
           onClick={currentUser ? handleLike : undefined}
-          disabled={isLiking}
+          disabled={!isAuth || isLiking}
           className={`flex items-center gap-1 ${
             alreadyLiked ? "text-red-500" : "text-gray-600"
           } focus:outline-none`}
@@ -161,7 +155,7 @@ export default function Post({ post, currentUser }) {
               onChange={(e) => setCommentText(e.target.value)}
               className="flex-1 border rounded px-3 py-1 text-sm text-black"
               placeholder="Ajouter un commentaire…"
-              disabled={isCommenting}
+              disabled={!isAuth || isCommenting}
               maxLength={200}
             />
             <button

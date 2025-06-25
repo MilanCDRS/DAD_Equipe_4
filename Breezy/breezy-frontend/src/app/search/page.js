@@ -3,33 +3,20 @@
 
 import MainLayoutComponent from "../../components/MainLayoutComponent";
 import SearchBar from "../../components/SearchBar";
-import { getAllUsers } from "../../utils/api";
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchUsers } from "../../store/usersSlice";
 
 export default function SearchPage() {
-  const [results, setResults] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch();
+  const { users, status, error } = useSelector((state) => state.users);
 
   useEffect(() => {
-    loadUsers("");
-  }, []);
-
-  const loadUsers = async (searchTerm) => {
-    setLoading(true);
-    try {
-      const data = await getAllUsers({
-        page: 1,
-        limit: 15,
-        search: searchTerm,
-      });
-      setResults(data.users);
-    } finally {
-      setLoading(false);
-    }
-  };
+    dispatch(fetchUsers({ page: 1, limit: 15, search: "" }));
+  }, [dispatch]);
 
   const handleSearch = (q) => {
-    loadUsers(q);
+    dispatch(fetchUsers({ page: 1, limit: 15, search: q }));
   };
 
   return (
@@ -38,14 +25,14 @@ export default function SearchPage() {
         <SearchBar onSearch={handleSearch} />
       </div>
 
-      {loading && <div className="text-center">Chargement…</div>}
+      {status === "loading" && <div className="text-center">Chargement…</div>}
+      {status === "failed" && (
+        <div className="text-red-500 text-center">{error}</div>
+      )}
 
       <ul className="space-y-3 max-w-md mx-auto w-full">
-        {results.map((u) => (
-          <li
-            key={u._id}
-            className="p-4 bg-white rounded-lg shadow"
-          >
+        {users.map((u) => (
+          <li key={u._id} className="p-4 bg-white rounded-lg shadow">
             <div className="font-semibold text-gray-900">{u.username}</div>
             <div className="text-sm text-gray-600">{u.email}</div>
           </li>

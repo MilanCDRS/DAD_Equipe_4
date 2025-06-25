@@ -7,9 +7,10 @@ import { useTranslation } from "../../../lib/TranslationProvider";
 import { useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 import { updateProfile } from "@/store/userSlice";
+import { logout } from "@/store/authSlice";
 
-import Image from 'next/image';
-import defaultAvatar from '@/app/images/defaultAvatar.png';
+import Image from "next/image";
+import defaultAvatar from "@/app/images/defaultAvatar.png";
 
 export default function CompleteProfilePage() {
   const { t } = useTranslation();
@@ -25,31 +26,33 @@ export default function CompleteProfilePage() {
     if (file) setProfilePicture(file);
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    try {
-      // envoie bio + avatar ; la thunk met à jour le store
-      await dispatch(
-        updateProfile({ bio: bio.trim(), avatar: profilePicture })
-      ).unwrap();
-      // redirige sur la home
-      router.push("/");
-    } catch (err) {
-      console.error("UpdateProfile failed:", err);
-      alert(err.message || "Erreur lors de la mise à jour");
-    }
+    const form = new FormData();
+    form.append("bio", bio.trim());
+    if (profilePicture) form.append("avatar", profilePicture);
+
+    dispatch(updateProfile(form))
+      .unwrap()
+      .then(() => router.push("/"))
+      .catch(console.error);
   };
 
   return (
     <div className="bg-white min-h-screen px-6 pt-8 pb-10 sm:px-10 sm:pt-12">
       <div className="max-w-md mx-auto w-full">
         <div className="flex items-center justify-between mb-6">
-          <Link
-            href="/auth/register"
+          <button
+            onClick={() => {
+              // 1) dispatch de la déconnexion
+              dispatch(logout());
+              // 2) redirection vers la page de login
+              router.push("/auth/login");
+            }}
             className="text-sm text-black font-medium"
           >
             {t("cancel")}
-          </Link>
+          </button>
           <BreezyLogo />
           <div className="w-[70px]" />
         </div>

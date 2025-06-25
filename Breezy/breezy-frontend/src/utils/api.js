@@ -2,34 +2,38 @@ import axios from "axios";
 import Cookies from "js-cookie";
 
 const apiClient = axios.create({
-  baseURL: "https://localhost/api",
+  baseURL: "/api",
   timeout: 10000, // Timeout de 10 seconds
-  headers: {
-    "Content-Type": "application/json",
-  },
+  withCredentials: true, // Permet d'envoyer les cookies HttpOnly
 });
 
-// On injecte automatiquement le token depuis le cookie
-apiClient.interceptors.request.use((config) => {
-  // Ne pas ajouter le token pour les routes d'inscription ou de connexion
-  const noAuthNeeded = ["/auth/register", "/auth/login"];
-  if (!noAuthNeeded.includes(config.url)) {
-    const token = Cookies.get("token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+// On injecte automatiquement le token depuis le cookie, on exclut /auth/register & /auth/login puis on ajoute l’Authorization
+apiClient.interceptors.response.use(
+  (res) => res,
+  async (err) => {
+    if (err.response?.status === 401) {
+      // on tente un refresh (qui renvoie un nouveau accessToken en cookie HttpOnly)
+      await apiClient.post("/auth/refresh-token");
+      // on réessaie la requête initiale
+      return apiClient(err.config);
     }
+    return Promise.reject(err);
   }
-  return config;
-});
-
-// Avant chaque requête, on injecte l’Authorization sauf pour /auth/*
-apiClient.interceptors.request.use((config) => {
-  if (!config.url.startsWith("/auth/")) {
-    const token = Cookies.get("token");
-    if (token) config.headers.Authorization = `Bearer ${token}`;
+);
+// sur 401/403, tenter un refresh une fois
+apiClient.interceptors.response.use(
+  (res) => res,
+  async (err) => {
+    // si 401 ou 403 sur accessToken expiré
+    if (err.response?.status === 401 || err.response?.status === 403) {
+      // tente un refresh
+      await apiClient.post("/auth/refresh-token");
+      // puis refait la requête initiale
+      return apiClient(err.config);
+    }
+    return Promise.reject(err);
   }
-  return config;
-});
+);
 
 /**
  * POST /auth/login
@@ -40,43 +44,56 @@ export const loginUser = async (email, password) => {
 };
 
 /**
- * POST /auth/register
+ * API AUTH
  */
+
 export const registerUser = async (userData) => {
   console.log("Registering user with data:", userData);
   const response = await apiClient.post("/auth/register", userData);
   return response.data;
 };
 
-/**
- * GET /users/:id
- */
 export const getUserById = async (userId) => {
   const response = await apiClient.get(`/auth/users/${userId}`);
   return response.data;
 };
 
-/**
- * PATCH /auth/profile
- * @note : pour l'envoi de FormData (avatar + bio) on
- *        utilisera directement axios/form-data dans le thunk (action/fonction du store qu'on voit en haut du fichier ).
- */
 export const updateProfile = async (profileData) => {
+  console.log("Updating profile with data:", profileData);
   const response = await apiClient.patch("/auth/profile", profileData);
   return response.data;
 };
 
-/**
- * GET /users
- */
-export const getAllUsers = async () => {
-  const response = await apiClient.get("/users/");
+export const getAllUsers = async ({
+  page = 1,
+  limit = 15,
+  search = "",
+} = {}) => {
+  const response = await apiClient.get("/auth/users", {
+    params: { page, limit, search },
+  });
   return response.data;
+  // (ou `return { users: response.data }`
 };
 
+/**
+ * API PUBLIC
+ */
 export const getUsersFollowers = async (username) => {
   const response = await apiClient.post(`public/follower/user/${username}`);
   return response.data;
 };
+
+export const getAllPosts = () =>
+  apiClient.get("/posts").then((res) => res.data);
+
+export const createPost = (formData) =>
+  apiClient.post("/posts", formData).then((res) => res.data);
+
+export const likePost = (postId) =>
+  apiClient.put(`/posts/${postId}/like`).then((res) => res.data);
+
+export const addComment = (postId, text) =>
+  apiClient.post(`/posts/${postId}/comments`, { text }).then((res) => res.data);
 
 export default apiClient;

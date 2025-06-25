@@ -13,12 +13,14 @@ export default function Login() {
   const dispatch = useDispatch();
   const router = useRouter();
   const { t } = useTranslation();
-  const { status, error } = useSelector((s) => s.auth);
-  const { token } = useSelector((state) => state.auth);
+
+  const { status, error, isAuthenticated } = useSelector((s) => s.auth);
 
   useEffect(() => {
-    if (token) router.push("/");
-  }, [token]);
+    if (isAuthenticated) {
+      router.push("/");
+    }
+  }, [isAuthenticated, router]);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -27,12 +29,11 @@ export default function Login() {
     e.preventDefault();
     try {
       await dispatch(login({ email, password })).unwrap();
-      router.push("/");
+      // pas besoin de router.push ici : useEffect le fera
     } catch (err) {
-      alert(`${t("loginFailed")}: ${err.message || t("unknownError")}`);
+      alert(`${t("loginFailed")}: ${err}`);
     }
   };
-
   return (
     <div className="bg-white min-h-screen px-6 pt-8 pb-10 sm:px-10 sm:pt-12 font-[var(--font-geist-sans)]">
       <div className="max-w-md mx-auto w-full">

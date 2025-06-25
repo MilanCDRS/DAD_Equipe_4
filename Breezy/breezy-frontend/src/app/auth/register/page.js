@@ -7,6 +7,7 @@ import { useTranslation } from "../../lib/TranslationProvider";
 import { useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
 import { register } from "@/store/authSlice";
+import { logout } from "@/store/authSlice";
 
 export default function CreateAccountPage() {
   const { t } = useTranslation();
@@ -63,9 +64,6 @@ export default function CreateAccountPage() {
 
         // si tout est OK, on va sur la complétion de profil
         router.push(`/auth/complete-profile/${result.userId}`);
-        if (data?.user?.username !== pseudo) {
-          alert(`${t("pseudoChanged")} ${data.user.username}`);
-        }
       } catch (err) {
         const message = err.message || err;
         setErrors([message]);
@@ -78,9 +76,17 @@ export default function CreateAccountPage() {
       <div className="max-w-md mx-auto w-full">
         <div className="flex items-center justify-between mb-6">
           <div className="w-[70px]">
-            <Link href="/auth/login" className="text-sm text-black font-medium">
+            <button
+              onClick={() => {
+                // 1) dispatch de la déconnexion
+                dispatch(logout());
+                // 2) redirection vers la page de login
+                router.push("/auth/login");
+              }}
+              className="text-sm text-black font-medium"
+            >
               {t("cancel")}
-            </Link>
+            </button>
           </div>
           <div className="flex-1 flex justify-center">
             <BreezyLogo />
