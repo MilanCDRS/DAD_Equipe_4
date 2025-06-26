@@ -1,4 +1,4 @@
-// src/components/BreezyLogo.jsx
+// src/components/BreezyLogo.js
 
 import React from "react";
 

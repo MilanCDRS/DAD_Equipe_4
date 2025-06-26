@@ -2,48 +2,33 @@
 
 import Navbar from "../components/navbar";
 import Footer from "../components/Footer";
-import { useEffect, useState } from "react";
-import axios from "axios";
+import { useEffect } from "react";
 import Post from "../components/post";
 import CreatePostButton from "../components/CreatePostButton";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import { fetchPosts } from "@/store/postsSlice";
 import { useRouter } from "next/navigation";
 
 export default function PostsPage() {
-  const isAuth = useSelector((s) => s.auth.isAuthenticated);
-  const currentUser = useSelector((s) => s.auth.user);
+  const dispatch = useDispatch();
   const router = useRouter();
 
-  const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const isAuth = useSelector((s) => s.auth.isAuthenticated);
+  const posts = useSelector((s) => s.posts.list);
+  const status = useSelector((s) => s.posts.status);
+  const currentUser = useSelector((s) => s.auth.user); // ← ajout
 
-  // Si pas authentifié, redirige et ne rend rien pendant la transition
   useEffect(() => {
     if (!isAuth) {
       router.replace("/auth/login");
+      return;
     }
-  }, [isAuth, router]);
+    dispatch(fetchPosts());
+  }, [isAuth, dispatch, router]);
 
-  // Dès que l’on est authentifié, on va chercher les posts
-  useEffect(() => {
-    if (!isAuth) return;
-    axios
-      .get("/api/public/posts")
-      .then((res) => setPosts(res.data))
-      .catch(() => {
-        /* on peut afficher un message d’erreur */
-      })
-      .finally(() => setLoading(false));
-  }, [isAuth]);
-
-  // Chargement
-  if (!isAuth || loading) {
+  if (!isAuth || status === "loading") {
     return <div className="text-center text-black py-10">Chargement...</div>;
   }
-
-  const handleProfile = () => {
-    router.push("/profilePages/profile");
-  };
 
   return (
     <div className="bg-[#f7f9fa] min-h-screen flex flex-col">
@@ -54,7 +39,7 @@ export default function PostsPage() {
 
       <main
         className="flex-1 max-w-xl mx-auto w-full px-4 py-8"
-        style={{ marginTop: "64px", marginBottom: "72px" }}
+        style={{ marginTop: 64, marginBottom: 72 }}
       >
         {posts.length === 0 ? (
           <div className="text-center text-black py-10">
@@ -67,10 +52,9 @@ export default function PostsPage() {
         )}
       </main>
 
-      <div className="fixed z-40" style={{ right: "32px", bottom: "88px" }}>
+      <div className="fixed z-40" style={{ right: 32, bottom: 88 }}>
         <CreatePostButton />
       </div>
-
       <div className="fixed bottom-0 left-0 w-full z-20">
         <Footer />
       </div>

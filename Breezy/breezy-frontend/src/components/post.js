@@ -1,62 +1,61 @@
+// src/components/Post.js
+"use client";
 import { useState } from "react";
-import axios from "axios";
+import { useDispatch, useSelector } from "react-redux";
+import { toggleLike, postComment } from "@/store/postsSlice";
+import CommentThread from "./CommentThread";
+import { useTranslation } from "@/app/lib/TranslationProvider";
 
-export default function Post({ post, currentUser }) {
-  if (!post) return null;
-  const [likes, setLikes] = useState(post.likes || []);
-  const [comments, setComments] = useState(post.comments || []);
-  const [showComments, setShowComments] = useState(false);
+export default function Post({ post }) {
+  const dispatch = useDispatch();
+  const currentUser = useSelector((s) => s.auth.user);
+  const isAuth = useSelector((s) => s.auth.isAuthenticated);
+  const {t} = useTranslation();
+
+  // on extrait depuis le store, pour garder la source de vérité
+  const storePost =
+    useSelector((s) => s.posts.list.find((p) => p._id === post._id)) || post;
+
+  const alreadyLiked = isAuth && storePost.likes.includes(currentUser.username);
   const [commentText, setCommentText] = useState("");
+  const [showComments, setShowComments] = useState(false);
+  const { likes = [], comments = [] } = storePost;
+
   const [isLiking, setIsLiking] = useState(false);
   const [isCommenting, setIsCommenting] = useState(false);
 
-  const alreadyLiked = currentUser && likes.includes(currentUser.username);
-
-  const handleLike = async () => {
-    if (!currentUser) return alert("Connecte-toi pour liker");
+  const handleLike = () => {
+    if (!isAuth) return alert("Connecte-toi pour liker");
     setIsLiking(true);
-    try {
-      const res = await axios.put(`/api/public/posts/${post._id}/like`, {
-        username: currentUser.username,
-      });
-      setLikes(res.data.likes);
-    } catch {
-      alert("Erreur lors du like !");
-    }
-    setIsLiking(false);
+    dispatch(toggleLike(post._id))
+      .unwrap()
+      .catch(() => {
+        alert("Erreur lors du like !");
+      })
+      .finally(() => setIsLiking(false));
   };
 
-  // PATCH ICI: toujours envoyer un displayName correct au backend
-  const handleAddComment = async () => {
-    if (!currentUser) return alert("Connecte-toi pour commenter");
-    if (!commentText.trim()) return;
+  const handleAddComment = (parentId = null, text = commentText) => {
+    if (!isAuth) return alert("Connecte-toi pour commenter");
+        if (!text.trim()) return;
     setIsCommenting(true);
-    try {
-      const res = await axios.post(`/api/public/posts/${post._id}/comments`, {
-        user: {
-          username: currentUser.username,
-          displayName:
-            currentUser.displayName || currentUser.name || currentUser.username, // PATCH
-          avatarUrl: currentUser.avatarUrl || "",
-        },
-        text: commentText,
-      });
-      setComments([...comments, res.data]);
-      setCommentText("");
-    } catch {
-      alert("Erreur lors de l'ajout du commentaire !");
-    }
-    setIsCommenting(false);
-  };
+    dispatch(postComment({ postId: post._id, text, parentCommentId: parentId }))
+      .unwrap()
+        .then(() => {
+          if (!parentId) setCommentText("");
+        })
+      .catch(() => alert("Erreur lors de l'ajout du commentaire !"))
+      .finally(() => setIsCommenting(false));
+    };
 
   return (
     <div className="bg-white rounded-2xl shadow p-4 mb-6">
       <div className="flex gap-3 items-center mb-2">
         {/* Avatar */}
         <div className="w-12 h-12 rounded-full bg-gray-300 overflow-hidden">
-          {post.user?.avatarUrl ? (
+          {post.user?.avatar ? (
             <img
-              src={post.user.avatarUrl}
+              src={post.user.avatar}
               alt="avatar"
               className="w-full h-full object-cover"
             />
@@ -97,7 +96,7 @@ export default function Post({ post, currentUser }) {
       <div className="flex gap-6 pt-2 text-gray-800 items-center">
         <button
           onClick={currentUser ? handleLike : undefined}
-          disabled={isLiking}
+          disabled={!isAuth || isLiking}
           className={`flex items-center gap-1 ${
             alreadyLiked ? "text-red-500" : "text-gray-600"
           } focus:outline-none`}
@@ -113,71 +112,39 @@ export default function Post({ post, currentUser }) {
       </div>
       {/* Section Commentaires */}
       {showComments && (
-        <div className="mt-4">
-          {/* Liste */}
-          <div className="space-y-3 mb-3">
-            {comments.length === 0 && (
-              <div className="text-gray-400 text-sm">Aucun commentaire</div>
-            )}
-            {comments.map((com, idx) => (
-              <div key={idx} className="flex items-start gap-2">
-                <div className="w-7 h-7 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
-                  {com.user?.avatarUrl ? (
-                    <img
-                      src={com.user.avatarUrl}
-                      alt="avatar"
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <span className="block w-full h-full" />
-                  )}
-                </div>
-                <div className="flex-1">
-                  {/* PATCH : nom d’utilisateur, puis fallback username */}
-                  <div className="text-sm font-medium text-black">
-                    {com.user?.displayName ||
-                      com.user?.username ||
-                      "Utilisateur"}
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    @{com.user?.username}
-                  </div>
-                  {/* PATCH : commentaire toujours noir */}
-                  <div className="text-black text-sm">{com.text}</div>
-                  <div className="text-xs text-gray-400">
-                    {com.createdAt
-                      ? new Date(com.createdAt).toLocaleDateString("fr-FR")
-                      : ""}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-          {/* Formulaire ajout */}
-          <div className="flex gap-2 items-center">
-            <input
-              type="text"
-              value={commentText}
-              onChange={(e) => setCommentText(e.target.value)}
-              className="flex-1 border rounded px-3 py-1 text-sm text-black"
-              placeholder="Ajouter un commentaire…"
-              disabled={isCommenting}
-              maxLength={200}
-            />
-            <button
-              onClick={handleAddComment}
-              disabled={isCommenting || !commentText.trim()}
-              className={`rounded px-3 py-1 text-white text-sm font-medium transition ${
-                commentText.trim() && !isCommenting
-                  ? "bg-blue-500 hover:bg-blue-600"
-                  : "bg-blue-100 text-blue-200 cursor-not-allowed"
-              }`}
-            >
-              Envoyer
-            </button>
-          </div>
-        </div>
+  <div className="mt-4">
+    <div className="space-y-3 mb-3">
+      {comments.length === 0 && (
+        <div className="text-gray-400 text-sm">Aucun commentaire</div>
       )}
+      {comments.map((comment, idx) => (
+        <CommentThread key={idx} comment={comment} parentId={post._id} onReply={handleAddComment} />
+      ))}
+    </div>
+    <div className="flex gap-2 items-center">
+      <input
+        type="text"
+        value={commentText}
+        onChange={(e) => setCommentText(e.target.value)}
+        className="flex-1 border rounded px-3 py-1 text-sm text-black"
+        placeholder="Ajouter un commentaire…"
+        disabled={!isAuth || isCommenting}
+        maxLength={200}
+      />
+      <button
+        onClick={() => handleAddComment(null, commentText)}
+        disabled={isCommenting || !commentText.trim()}
+        className={`rounded px-3 py-1 text-white text-sm font-medium transition ${
+          commentText.trim() && !isCommenting
+            ? "bg-blue-500 hover:bg-blue-600"
+            : "bg-blue-100 text-blue-200 cursor-not-allowed"
+        }`}
+      >
+        {t("Envoyer")}
+      </button>
+    </div>
+  </div>
+)}
     </div>
   );
 }

@@ -1,4 +1,4 @@
-// components/AuthGuard.jsx
+// components/AuthGuard.js
 "use client";
 
 import { useEffect } from "react";

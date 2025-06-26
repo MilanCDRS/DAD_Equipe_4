@@ -1,6 +1,8 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import apiClient from "../utils/api";
 
+// INFO DU USER CONNECTE
+
 // Charge les infos complètes du user
 export const getProfile = createAsyncThunk(
   "user/getProfile",
@@ -18,17 +20,14 @@ export const getProfile = createAsyncThunk(
 // Update bio + avatar
 export const updateProfile = createAsyncThunk(
   "user/updateProfile",
-  async ({ bio, avatar }, { rejectWithValue }) => {
+  async (formData, { rejectWithValue }) => {
     try {
-      const form = new FormData();
-      form.append("bio", bio);
-      if (avatar) form.append("avatar", avatar);
-      const { data } = await apiClient.patch("/auth/profile", form, {
+      const { data } = await apiClient.patch("/auth/profile", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       return data.user;
     } catch (err) {
-      return rejectWithValue(err.message || err);
+      return rejectWithValue(err.response?.data || err.message);
     }
   }
 );
