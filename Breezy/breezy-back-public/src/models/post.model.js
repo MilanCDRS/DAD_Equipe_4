@@ -10,17 +10,6 @@ const replySchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 
-const commentSchema = new mongoose.Schema({
-  user: {
-    username: String,
-    displayName: String,
-    avatarUrl : String
-  },
-  text: String,
-  createdAt: { type: Date, default: Date.now },
-  replies: [replySchema] 
-});
-
 
 const postSchema = new mongoose.Schema({
   user: {
@@ -33,7 +22,6 @@ const postSchema = new mongoose.Schema({
   hashtags: [String],
   mentions: [String],
   likes: { type: [String], default: [] },
-  comments: { type: [commentSchema], default: [] },
   createdAt: { type: Date, default: Date.now }
 });
 
