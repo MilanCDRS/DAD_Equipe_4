@@ -93,7 +93,10 @@ export const createPost = (formData) =>
 export const likePost = (postId) =>
   apiClient.put(`/posts/${postId}/like`).then((res) => res.data);
 
-export const addComment = (postId, text) =>
-  apiClient.post(`/posts/${postId}/comments`, { text }).then((res) => res.data);
+export const addComment = (postId, text, parentCommentId = null) =>
+  apiClient
+    .post(`/posts/${postId}/comments`, { text, parentCommentId })
+    .then((res) => res.data);
+
 
 export default apiClient;

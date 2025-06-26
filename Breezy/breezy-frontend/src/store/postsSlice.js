@@ -2,7 +2,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { getAllPosts, createPost, likePost, addComment } from "../utils/api";
 
-// LA LISTE GENERIQUE DE TOUS LES POSTS
 // Récupérer tous les posts
 export const fetchPosts = createAsyncThunk(
   "posts/fetchAll",
@@ -27,24 +26,24 @@ export const addPost = createAsyncThunk(
   }
 );
 
-// Like/unlike
+// Like / Unlike
 export const toggleLike = createAsyncThunk(
   "posts/toggleLike",
   async (postId, { rejectWithValue }) => {
     try {
-      return await likePost(postId); // renvoie { likes: [...] }
+      return await likePost(postId); // doit retourner { likes: [...] }
     } catch (err) {
       return rejectWithValue(err.response?.data || err.message);
     }
   }
 );
 
-// Ajouter un commentaire
+// Ajouter un commentaire ou une réponse
 export const postComment = createAsyncThunk(
   "posts/postComment",
-  async ({ postId, text }, { rejectWithValue }) => {
+  async ({ postId, text, parentCommentId = null }, { rejectWithValue }) => {
     try {
-      const comment = await addComment(postId, text);
+      const comment = await addComment(postId, text, parentCommentId);
       return { postId, comment };
     } catch (err) {
       return rejectWithValue(err.response?.data || err.message);
@@ -75,6 +74,7 @@ const postsSlice = createSlice({
         state.status = "failed";
         state.error = payload;
       })
+
       // addPost
       .addCase(addPost.pending, (state) => {
         state.status = "loading";
@@ -82,23 +82,45 @@ const postsSlice = createSlice({
       })
       .addCase(addPost.fulfilled, (state, { payload }) => {
         state.status = "succeeded";
-        state.list.unshift(payload); // ajoute en tête
+        state.list.unshift(payload); // ajoute en haut de la liste
       })
       .addCase(addPost.rejected, (state, { payload }) => {
         state.status = "failed";
         state.error = payload;
       })
+
       // toggleLike
       .addCase(toggleLike.fulfilled, (state, { payload, meta }) => {
-        // payload = { likes: [...] }, meta.arg = postId
         const post = state.list.find((p) => p._id === meta.arg);
-        if (post) post.likes = payload.likes;
+        if (post) {
+          post.likes = payload.likes;
+        }
       })
-      // postComment
+
+      // postComment (gère commentaires + réponses imbriquées)
       .addCase(postComment.fulfilled, (state, { payload }) => {
-        // payload = { postId, comment }
-        const post = state.list.find((p) => p._id === payload.postId);
-        if (post) post.comments.push(payload.comment);
+        const { postId, comment } = payload;
+        const post = state.list.find((p) => p._id === postId);
+        if (!post) return;
+
+        if (!comment.parentCommentId) {
+          // Commentaire de niveau 1
+          post.comments.push(comment);
+        } else {
+          // Réponse à un commentaire
+          const insertReply = (comments) => {
+            for (const c of comments) {
+              if (c._id === comment.parentCommentId) {
+                if (!c.replies) c.replies = [];
+                c.replies.push(comment);
+                return true;
+              }
+              if (c.replies && insertReply(c.replies)) return true;
+            }
+            return false;
+          };
+          insertReply(post.comments);
+        }
       });
   },
 });

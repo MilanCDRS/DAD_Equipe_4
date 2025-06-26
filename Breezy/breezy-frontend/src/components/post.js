@@ -12,9 +12,8 @@ export default function Post({ post }) {
   const isAuth = useSelector((s) => s.auth.isAuthenticated);
   const {t} = useTranslation();
 
-  // on extrait depuis le store, pour garder la source de vérité
-  const storePost =
-    useSelector((s) => s.posts.list.find((p) => p._id === post._id)) || post;
+  const storePost = useSelector((s) => s.posts.list.find((p) => p._id === post._id));
+  if (!storePost) return null;
 
   const alreadyLiked = isAuth && storePost.likes.includes(currentUser.username);
   const [commentText, setCommentText] = useState("");

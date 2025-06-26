@@ -4,7 +4,7 @@ const commentSchema = new mongoose.Schema({
   user: {
     username: String,
     displayName: String,
-    avatarUrl: String
+    avatar: String
   },
   text: String,
   createdAt: { type: Date, default: Date.now },
@@ -15,7 +15,7 @@ const postSchema = new mongoose.Schema({
   user: {
     username: String,
     displayName: String,
-    avatarUrl: String
+    avatar: String
   },
   content: String,
   image: String,
