@@ -7,41 +7,29 @@ const apiClient = axios.create({
   withCredentials: true, // Permet d'envoyer les cookies HttpOnly
 });
 
-// On injecte automatiquement le token depuis le cookie, on exclut /auth/register & /auth/login puis on ajoute l’Authorization
 apiClient.interceptors.response.use(
   (res) => res,
-  async (err) => {
-    if (err.response?.status === 401) {
-      // on tente un refresh (qui renvoie un nouveau accessToken en cookie HttpOnly)
-      await apiClient.post("/auth/refresh-token");
-      // on réessaie la requête initiale
-      return apiClient(err.config);
-    }
-    return Promise.reject(err);
-  }
-);
-// sur 401/403, tenter un refresh une fois
-apiClient.interceptors.response.use(
-  (res) => res,
-  async (err) => {
-    // si 401 ou 403 sur accessToken expiré
-    if (err.response?.status === 401 || err.response?.status === 403) {
-      // tente un refresh
-      await apiClient.post("/auth/refresh-token");
-      // puis refait la requête initiale
-      return apiClient(err.config);
-    }
-    return Promise.reject(err);
-  }
-);
+  async (error) => {
+    const orig = error.config;
+    const status = error.response?.status;
 
-/**
- * POST /auth/login
- */
-export const loginUser = async (email, password) => {
-  const response = await apiClient.post("/auth/login", { email, password });
-  return response.data;
-};
+    // Ne retry ni sur refresh-token, ni authenticate, ni logout
+    if (
+      orig.url?.includes("/auth/refresh-token") ||
+      orig.url?.includes("/auth/authenticate") ||
+      orig.url?.includes("/auth/logout")
+    ) {
+      return Promise.reject(error);
+    }
+
+    if ((status === 401 || status === 403) && !orig._retry) {
+      orig._retry = true;
+      await apiClient.post("/auth/refresh-token");
+      return apiClient(orig);
+    }
+    return Promise.reject(error);
+  }
+);
 
 /**
  * API AUTH
@@ -61,6 +49,11 @@ export const getUserById = async (userId) => {
 export const updateProfile = async (profileData) => {
   console.log("Updating profile with data:", profileData);
   const response = await apiClient.patch("/auth/profile", profileData);
+  return response.data;
+};
+
+export const loginUser = async (email, password) => {
+  const response = await apiClient.post("/auth/login", { email, password });
   return response.data;
 };
 
@@ -98,5 +91,7 @@ export const addComment = (postId, text, parentCommentId = null) =>
     .post(`/posts/${postId}/comments`, { text, parentCommentId })
     .then((res) => res.data);
 
-
+export const logout = () => {
+  return apiClient.post("/auth/logout");
+};
 export default apiClient;

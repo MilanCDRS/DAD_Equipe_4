@@ -35,7 +35,7 @@ export default function Navbar() {
       // on appelle l'API qui clear les cookies httpOnly
       await dispatch(logoutAction()).unwrap();
       // puis on vide le store et redirige
-      router.push("/auth/login");
+      router.replace("/auth/login");
     } catch (err) {
       console.error("Logout failed:", err);
       alert("Déconnexion impossible pour le moment.");

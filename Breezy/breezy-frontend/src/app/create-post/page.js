@@ -21,11 +21,6 @@ export default function CreatePostPage() {
   const fileInputRef = useRef();
   const MAX_IMAGE_SIZE = 2 * 1024 * 1024; // 2 Mo
 
-  // --- 3) Redirection si non connecté
-  useEffect(() => {
-    if (!isAuth) router.replace("/auth/login");
-  }, [isAuth, router]);
-
   // --- 4) Envoi du post via le thunk `addPost`
   const handleSend = async () => {
     if (!text.trim() && !image) return;

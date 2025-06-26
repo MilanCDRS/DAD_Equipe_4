@@ -2,27 +2,53 @@
 "use client";
 
 import { useEffect } from "react";
-import { useSelector } from "react-redux";
-import { useRouter } from "next/navigation";
+import { useSelector, useDispatch } from "react-redux";
+import { usePathname, useRouter } from "next/navigation";
+import { checkAuth } from "@/store/authSlice";
 
 function Spinner() {
   return (
-    <div className="w-8 h-8 border-4 border-t-transparent border-gray-400 rounded-full animate-spin" />
+    <div className="flex items-center justify-center h-screen">
+      <div className="w-8 h-8 border-4 border-t-transparent border-gray-400 rounded-full animate-spin" />
+    </div>
   );
 }
 
 export default function AuthGuard({ children }) {
-  const token = useSelector((s) => s.auth.token);
+  const pathname = usePathname();
+  const dispatch = useDispatch();
   const router = useRouter();
+  const { status, isAuthenticated } = useSelector((s) => s.auth);
+
+  const skipAuth = pathname.startsWith("/auth");
+
+  // 2 tous les Hooks sont appelés **quelle que soit la route**
+  useEffect(() => {
+    if (!skipAuth && status === "idle") {
+      dispatch(checkAuth());
+    }
+  }, [skipAuth, status, dispatch]);
 
   useEffect(() => {
-    if (!token) {
+    if (!skipAuth && status === "failed") {
       router.replace("/auth/login");
     }
-  }, [token, router]);
+  }, [skipAuth, status, router]);
 
-  // tant qu’on n’a pas de token, on n’affiche rien
-  if (!token) return <Spinner />;
+  // cas public : /auth/*
+  if (skipAuth) {
+    return <>{children}</>;
+  }
 
+  // cas en attente du check côté serveur
+  if (status === "idle" || status === "loading") {
+    return <Spinner />;
+  }
+
+  if (!isAuthenticated) {
+    return <Spinner />;
+  }
+
+  // cas OK : on rend enfin le contenu protégé
   return <>{children}</>;
 }

@@ -1,26 +1,23 @@
 /* src/store/authSlice.js */
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import Cookies from "js-cookie";
 import apiClient from "@/utils/api";
-import { loginUser } from "@/utils/api";
 
-// TOUT CE QUI TOUCHE A LA CONNEXION / AUTHENTIFICATION
-
-// on renvoie userInfo (le back pose les cookies)
+// Enregistrement
 export const register = createAsyncThunk(
   "auth/register",
   async (formData, { rejectWithValue }) => {
     try {
-      const res = await apiClient.post("/auth/register", formData);
-      // res.data : { userId, username, role, email }
-      return res.data;
+      const { userId, username, email, role, bio, avatar } = (
+        await apiClient.post("/auth/register", formData)
+      ).data;
+      return { userId, username, email, role, bio, avatar };
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || err.message);
     }
   }
 );
 
-// avant : renvoyait seulement userId, username, email, role, token
+// Connexion
 export const login = createAsyncThunk(
   "auth/login",
   async ({ email, password }, { rejectWithValue }) => {
@@ -32,32 +29,43 @@ export const login = createAsyncThunk(
         role,
         bio,
         avatar,
-        token,
-      } = await loginUser(email, password);
-      return { userId, username, email: em, role, bio, avatar, token };
-    } catch (err) {
-      return rejectWithValue(err.message || err);
-    }
-  }
-);
-
-// LOGOUT : appeler le back pour clearCookie, puis vider le store
-export const logout = createAsyncThunk(
-  "auth/logout",
-  async (_, { rejectWithValue }) => {
-    try {
-      await apiClient.post("/auth/logout");
-      return;
+      } = (await apiClient.post("/auth/login", { email, password })).data;
+      return { userId, username, email: em, role, bio, avatar };
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || err.message);
     }
   }
 );
 
-const tokenFromCookie = Cookies.get("token") || null;
+// Déconnexion
+export const logout = createAsyncThunk(
+  "auth/logout",
+  async (_, { rejectWithValue }) => {
+    try {
+      await apiClient.post("/auth/logout");
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || err.message);
+    }
+  }
+);
+
+export const checkAuth = createAsyncThunk(
+  "auth/checkAuth",
+  async (_, { rejectWithValue }) => {
+    try {
+      // Cette route lit req.cookies.accessToken et renvoie payload ou 401/403
+      const { userId, role, username, email, bio, avatar } = (
+        await apiClient.get("/auth/authenticate")
+      ).data;
+      return { userId, role, username, email, bio, avatar };
+    } catch (err) {
+      return rejectWithValue(err.response?.status);
+    }
+  }
+);
 
 const initialState = {
-  user: null, // ou { userId, username, role, email }
+  user: null,
   isAuthenticated: false,
   status: "idle",
   error: null,
@@ -69,7 +77,22 @@ const authSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      // REGISTER
+      // checkAuth
+      .addCase(checkAuth.pending, (s) => {
+        s.status = "loading";
+        s.error = null;
+      })
+      .addCase(checkAuth.fulfilled, (s, { payload }) => {
+        s.status = "succeeded";
+        s.isAuthenticated = true;
+        s.user = payload;
+      })
+      .addCase(checkAuth.rejected, (s) => {
+        s.status = "failed";
+        s.isAuthenticated = false;
+        s.user = null;
+      })
+      // register
       .addCase(register.pending, (state) => {
         state.status = "loading";
         state.error = null;
@@ -77,7 +100,7 @@ const authSlice = createSlice({
       .addCase(register.fulfilled, (state, { payload }) => {
         state.status = "succeeded";
         state.user = payload;
-        state.isAuthenticated = true; // on considère l’user loggé si back a posé le cookie
+        state.isAuthenticated = true;
       })
       .addCase(register.rejected, (state, { payload }) => {
         state.status = "failed";
@@ -91,17 +114,8 @@ const authSlice = createSlice({
       })
       .addCase(login.fulfilled, (state, { payload }) => {
         state.status = "succeeded";
-        state.token = payload.token;
-        state.user = {
-          userId: payload.userId,
-          username: payload.username,
-          email: payload.email,
-          role: payload.role,
-          bio: payload.bio,
-          avatar: payload.avatar,
-        };
+        state.user = payload;
         state.isAuthenticated = true;
-        state.token = payload.token;
       })
       .addCase(login.rejected, (state, { payload }) => {
         state.status = "failed";

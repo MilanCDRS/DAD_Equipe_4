@@ -2,20 +2,21 @@ const User = require("../models/user.model");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-const accessTokenOpts = {
+const sessionCookieOpts = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
   sameSite: "Strict",
-  path: "/", // disponible partout
-  maxAge: 10 * 60 * 1000, // 10 minutes
+  path: "/", // dispo partout
+  // pas de maxAge => cookie de session
 };
 
-const refreshTokenOpts = {
+// Cookie persistant pour le refresh token (7 jours)
+const refreshCookieOpts = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
   sameSite: "Strict",
   path: "/api/auth/refresh-token",
-  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 jours
+  maxAge: 7 * 24 * 60 * 60 * 1000,
 };
 
 exports.register = async (req, res) => {
@@ -49,8 +50,8 @@ exports.register = async (req, res) => {
 
     // Stocke les cookies
     res
-      .cookie("accessToken", accessToken, accessTokenOpts)
-      .cookie("refreshToken", refreshToken, refreshTokenOpts)
+      .cookie("accessToken", accessToken, sessionCookieOpts)
+      .cookie("refreshToken", refreshToken, refreshCookieOpts)
       .status(201)
       .json({
         message: "User created",
@@ -85,8 +86,8 @@ exports.login = async (req, res) => {
     );
 
     res
-      .cookie("accessToken", accessToken, accessTokenOpts)
-      .cookie("refreshToken", refreshToken, refreshTokenOpts)
+      .cookie("accessToken", accessToken, sessionCookieOpts)
+      .cookie("refreshToken", refreshToken, refreshCookieOpts)
       .status(200)
       .json({
         message: "Login successful",
@@ -140,31 +141,32 @@ exports.authenticate = (req, res) => {
   }
 };
 
+// controllers/auth.controller.js
 exports.refreshToken = (req, res) => {
-  const refreshToken = req.cookies.refreshToken;
-  if (!refreshToken) return res.sendStatus(401);
+  const token = req.cookies.refreshToken;
+  if (!token) return res.sendStatus(401);
 
-  jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET, (err, user) => {
+  jwt.verify(token, process.env.JWT_REFRESH_SECRET, (err, payload) => {
     if (err) return res.sendStatus(403);
 
+    // Génère un nouveau accessToken
     const newAccessToken = jwt.sign(
-      { userId: user.userId, role: user.role },
+      { userId: payload.userId, role: payload.role },
       process.env.JWT_SECRET,
       { expiresIn: "10m" }
     );
 
-    res.json({ accessToken: newAccessToken });
+    // Repose **seulement** le accessToken
+    res
+      .cookie("accessToken", newAccessToken, sessionCookieOpts)
+      .status(200)
+      .json({ message: "Access token refreshed" });
   });
 };
 
+// controllers/auth.controller.js
 exports.logout = (req, res) => {
-  // on spprime le cookie de refresh token
-  res.clearCookie("refreshToken", {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "Strict",
-    path: "/api/auth/refresh-token",
-  });
-
-  res.status(200).json({ message: "Logout successful" });
+  res.clearCookie("accessToken", sessionCookieOpts);
+  res.clearCookie("refreshToken", refreshCookieOpts);
+  return res.status(200).json({ message: "Logout successful" });
 };

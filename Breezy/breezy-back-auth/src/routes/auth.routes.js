@@ -27,16 +27,18 @@ router.post(
 // Renouvellement reste public (cookie HttpOnly)
 router.post("/refresh-token", authController.refreshToken);
 
-// Vérifier que le token est valide
 router.get("/authenticate", requireAuth, (req, res) => {
-  // si on arrive ici, requireAuth a validé le token
-  res.status(200).json({ ok: true, userId: req.userId, role: req.userRole });
+  res.status(200).json({
+    ok: true,
+    userId: req.user.userId,
+    role: req.user.role,
+    username: req.user.username,
+  });
 });
 
 // Mettre à jour son profil (private + upload avatar)
 router.patch("/profile", requireAuth, upload.single("avatar"), updateProfile);
 
-// on pourrait aussi protégé logout
-router.post("/logout", requireAuth, authController.logout);
+router.post("/logout", authController.logout);
 
 module.exports = router;

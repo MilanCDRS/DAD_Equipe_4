@@ -91,12 +91,12 @@ export default function Login() {
           >
             {t("login")}
           </button>
-
+          {/* 
           {status === "failed" && (
             <p className="text-red-500">
               {error?.message || error || t("unknownError")}
             </p>
-          )}
+          )} */}
         </form>
       </div>
     </div>

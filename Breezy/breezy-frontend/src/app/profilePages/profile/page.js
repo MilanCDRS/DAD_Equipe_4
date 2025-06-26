@@ -1,28 +1,18 @@
 "use client";
 import React, { useState } from "react";
-import apiClient from "@/utils/api";
 import Image from "next/image";
 import defaultAvatar from "@/app/images/defaultAvatar.png";
 import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "@/app/lib/TranslationProvider";
-import { getUserById, getUsersFollowers } from "@/utils/api";
 import Post from "@/components/post";
 
 export default function ProfileCard() {
-  const dispatch = useDispatch();
   const router = useRouter();
   const { t } = useTranslation();
 
-  const isAuth = useSelector((s) => s.auth.isAuthenticated);
   const user = useSelector((s) => s.auth.user);
-
-  useEffect(() => {
-    if (!isAuth || !user) router.push("/auth/login");
-  }, [isAuth, router]);
-
-  if (!isAuth) return <p>{t("loading")}</p>;
 
   useEffect(() => {
     const fetchProfile = async () => {
