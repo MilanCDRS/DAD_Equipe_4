@@ -41,7 +41,7 @@ exports.createPost = async (req, res) => {
     const imageBase64 = req.file?.buffer.toString("base64") || null;
 
     const newPost = new Post({
-      user: { username, displayName, avatarUrl },
+      user: { username, displayName, avatar },
       content: req.body.content,
       image: imageBase64,
       createdAt: new Date(),
@@ -78,28 +78,51 @@ exports.toggleLike = async (req, res) => {
 
 // POST /api/posts/:id/comments
 exports.addComment = async (req, res) => {
+  const { text, parentCommentId } = req.body;
+  const { id: postId } = req.params;
+
   try {
-    const { username, displayName, avatarUrl } = req.user;
-    const { text } = req.body;
+    const post = await Post.findById(postId);
+    if (!post) return res.status(404).json({ error: "Post non trouvé" });
 
-    const post = await Post.findById(req.params.id);
-    if (!post) return res.status(404).json({ error: "Post introuvable" });
-
-    // on pousse un sous-doc commentaire avec les infos user
-    post.comments.push({
-      user: { username, displayName, avatarUrl },
+    const newComment = {
+      user: {
+        username: req.user.username,
+        displayName: req.user.displayName,
+        avatarUrl: req.user.avatarUrl
+      },
       text,
       createdAt: new Date(),
-    });
-    await post.save();
+      replies: []
+    };
 
-    // on renvoie le dernier commentaire créé
-    const newComment = post.comments[post.comments.length - 1];
-    res.status(201).json(newComment);
+    // Si c’est une réponse à un commentaire
+    if (parentCommentId) {
+      const addReplyRecursively = (comments) => {
+        for (let comment of comments) {
+          if (comment._id.toString() === parentCommentId) {
+            comment.replies.push(newComment);
+            return true;
+          }
+          if (comment.replies?.length > 0) {
+            const added = addReplyRecursively(comment.replies);
+            if (added) return true;
+          }
+        }
+        return false;
+      };
+
+      const added = addReplyRecursively(post.comments);
+      if (!added) return res.status(404).json({ error: "Commentaire parent non trouvé" });
+    } else {
+      // Sinon commentaire à la racine du post
+      post.comments.push(newComment);
+    }
+
+    await post.save();
+    res.status(201).json(post);
   } catch (err) {
-    console.error("Erreur ajout commentaire :", err);
-    res
-      .status(500)
-      .json({ error: "Erreur serveur lors de l’ajout du commentaire" });
+    console.error(err);
+    res.status(500).json({ error: "Erreur serveur" });
   }
 };
