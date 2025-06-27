@@ -47,19 +47,38 @@ export default function Post({ post }) {
       .finally(() => setIsCommenting(false));
     };
 
+    const handleProfile = (username) => {
+    console.log("handleProfile called on posts");
+    if(isAuth) {
+      // On récupère l'utilisateur connecté depuis le store      
+      console.log("User from store:", username);
+      // Redirection vers la page de profil de l'utilisateur connecté
+      router.push(`/profilePages/profile/${username}`);
+      return;
+    }else{
+      // Si l'utilisateur n'est pas authentifié, on le redirige vers la page de connexion
+      alert("Connecte-toi pour commenter");
+      return;
+    }
+  };
+
   return (
     <div className="bg-white rounded-2xl shadow p-4 mb-6">
       <div className="flex gap-3 items-center mb-2">
         {/* Avatar */}
         <div className="w-12 h-12 rounded-full bg-gray-300 overflow-hidden">
           {post.user?.avatar ? (
-            <img
-              src={post.user.avatar}
-              alt="avatar"
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <span className="block w-full h-full" />
+            <button onClick={() => handleProfile(post.user?.username)} className="w-full h-full p-0 m-0 border-none bg-transparent">
+                <img
+                  src={post.user.avatarUrl}
+                  alt="avatar"
+                  className="w-full h-full object-cover"
+                />
+            </button>
+            ) : (
+              <button onClick={() => handleProfile(post.user?.username)} className="w-full h-full p-0 m-0 border-none bg-transparent">
+                <span className="block w-full h-full" />
+              </button>
           )}
         </div>
         <div>

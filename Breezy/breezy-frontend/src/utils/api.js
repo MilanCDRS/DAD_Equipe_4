@@ -7,6 +7,8 @@ const apiClient = axios.create({
   withCredentials: true, // Permet d'envoyer les cookies HttpOnly
 });
 
+// On injecte automatiquement le token depuis le cookie, on exclut /auth/register & /auth/login puis on ajoute l’Authorization
+// sur 401/403, tenter un refresh une fois
 apiClient.interceptors.response.use(
   (res) => res,
   async (error) => {
@@ -31,6 +33,15 @@ apiClient.interceptors.response.use(
   }
 );
 
+
+/**
+ * POST /auth/login
+ */
+export const loginUser = async (email, password) => {
+  const response = await apiClient.post("/auth/login", { email, password });
+  return response.data;
+};
+
 /**
  * API AUTH
  */
@@ -52,11 +63,6 @@ export const updateProfile = async (profileData) => {
   return response.data;
 };
 
-export const loginUser = async (email, password) => {
-  const response = await apiClient.post("/auth/login", { email, password });
-  return response.data;
-};
-
 export const getAllUsers = async ({
   page = 1,
   limit = 15,
@@ -73,7 +79,7 @@ export const getAllUsers = async ({
  * API PUBLIC
  */
 export const getUsersFollowers = async (username) => 
-  apiClient.get(`/follower/user/${username}`);
+  apiClient.get(`/follower/user/${username}`).then((res) => res.data);
 
 export const getAllPosts = () =>
   apiClient.get("/posts").then((res) => res.data);
@@ -84,14 +90,9 @@ export const createPost = (formData) =>
 export const likePost = (postId) =>
   apiClient.put(`/posts/${postId}/like`).then((res) => res.data);
 
-export const addComment = (postId, text, parentCommentId = null) =>
-  apiClient
-    .post(`/posts/${postId}/comments`, { text, parentCommentId })
-    .then((res) => res.data);
+export const addComment = (postId, text) =>
+  apiClient.post(`/posts/${postId}/comments`, { text }).then((res) => res.data);
 
-export const logout = () => {
-  return apiClient.post("/auth/logout");
-};
 export const getPostsByUser = (username) =>
   apiClient.get(`/posts/user/${username}`).then((res) => res.data);
 
@@ -100,5 +101,13 @@ export const getPostsCommentedByUser = (username) =>
 
 export const getPostsLikedByUser = (username) =>  
   apiClient.get(`/posts/liked/${username}`).then((res) => res.data);
+
+export const followUser = (username, usernameToFollow) =>
+  apiClient.post(`/follower/${username}/${usernameToFollow}`)
+    .then((res) => res.data);
+
+export const unfollowUser = (username, usernameToUnfollow) =>
+  apiClient.delete(`/follower/${username}/${usernameToUnfollow}`)
+    .then((res) => res.data);
 
 export default apiClient;

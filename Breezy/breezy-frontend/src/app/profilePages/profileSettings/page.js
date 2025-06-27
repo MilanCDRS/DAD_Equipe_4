@@ -2,6 +2,7 @@
 
 import BreezyLogo from "@/BreezyLogo";
 import { useState } from "react";
+import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useTranslation } from "@/app/lib/TranslationProvider";
 import { useRouter } from "next/navigation";
@@ -11,6 +12,7 @@ import Image from "next/image";
 import defaultAvatar from "@/app/images/defaultAvatar.png";
 
 export default function SettingsProfilePage() {
+  const dispatch = useDispatch();
   const router = useRouter();
   const { t } = useTranslation();
   const isAuth = useSelector((s) => s.auth.isAuthenticated);
@@ -18,6 +20,13 @@ export default function SettingsProfilePage() {
 
   const [bio, setBio] = useState(user?.bio || "");
   const [profilePicture, setProfilePicture] = useState(user?.avatar || null);
+
+  useEffect(() => {
+    console.log(isAuth + " isAuth");
+    if (!isAuth) router.push("/auth/login");
+  }, [isAuth, router]);
+
+  if (!isAuth) return <p>{t("loading")}</p>;
 
   console.log("Received id from params:", user?.id);
   const handleImageUpload = (e) => {

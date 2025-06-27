@@ -27,5 +27,4 @@ router.put("/:id/like", requireAuth, toggleLike);
 router.post("/:id/comments", requireAuth, addComment);
 router.get(`/commented/:username`, requireAuth, fetchPostsCommentedByUser);
 router.get(`/liked/:username`, requireAuth, fetchPostsLikedByUser);
-
 module.exports = router;
