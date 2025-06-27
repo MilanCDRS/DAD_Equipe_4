@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, use } from "react";
 import { SettingsIcon, UserIcon } from "lucide-react";
 import BreezyLogo from "../BreezyLogo";
 import Link from "next/link";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
 import { logout as logoutAction } from "@/store/authSlice";
 import LangSwitcher from "./LangSwitcher";
@@ -18,6 +18,8 @@ export default function Navbar() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const containerRef = useRef(null);
+  const isAuth = useSelector((state) => state.auth.isAuthenticated);
+  const user = useSelector((state) => state.auth.user);
 
   // Ferme le dropdown au clic hors zone
   useEffect(() => {
@@ -43,16 +45,32 @@ export default function Navbar() {
       setOpen(false);
     }
   };
+
+  const handleProfile = () => {
+    console.log("handleProfile called");
+    if(isAuth) {
+      // On récupère l'utilisateur connecté depuis le store      
+      console.log("User from store:", user);
+      // Redirection vers la page de profil de l'utilisateur connecté
+      router.push(`/profilePages/profile/${user.username}`);
+      return;
+    }else{
+      // Si l'utilisateur n'est pas authentifié, on le redirige vers la page de connexion
+      router.push("/auth/login");
+      return;
+    }
+  };
+
   return (
     <>
       <header className="fixed top-0 left-0 w-full bg-white shadow-md z-20">
         <nav className="container mx-auto flex items-center justify-center space-x-24 h-16">
-          <Link
-            href="/profilePages/profile"
+          <button
             className="text-black hover:text-blue-500"
+            onClick={handleProfile}
           >
             <UserIcon size={24} />
-          </Link>
+          </button>
 
           <Link href="/" className="text-black hover:text-blue-500">
             <BreezyLogo width={24} height={24} />

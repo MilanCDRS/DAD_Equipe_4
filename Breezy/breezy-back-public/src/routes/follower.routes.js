@@ -16,12 +16,14 @@ router.get("/user/:username", requireAuth, followerController.getFollowersAndFol
 router.get("/", followerController.getAllfollowers);
 
 // Protégé
-router.post("/", requireAuth, followerController.createfollower);
+router.post("/:username/:usernameToFollow", followerController.createfollower);
 
 // Protégé
 router.patch("/:id", requireAuth, followerController.updatefollower);
 
 router.delete("/:id", requireAuth, followerController.deletefollower);
+
+router.delete("/:username/:usernameToUnfollow", requireAuth, followerController.unfollowUser);
 
 // Remove duplicate route registration to avoid conflicts
 // router.delete("/:id", followerController.deletefollower);

@@ -8,58 +8,45 @@ const { requireAuth } = require("../middlewares/auth.middleware");
 const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || "http://auth:3000";
 
 /** POST : Crée une demande de suivi */
-exports.createfollower = [
-  requireAuth,
-  async (req, res) => {
-    try {
-      // 1. followerId = l'utilisateur authentifié
-      const followerId = req.user.userId;
+exports.createfollower = async (req, res) => {
+  try {
 
-      // 2. followingUsername côté front
-      const { followingUsername } = req.body;
-      if (!followingUsername) {
-        return res
-          .status(400)
-          .json({ message: "Le champ followingUsername est requis" });
-      }
+    // Si non fourni dans le body, récupérer depuis les params (pour follower/:username/:usernameToFollow)
 
-      // 3. Charger l'user “following” depuis Auth
-      //    Ici on suppose que ton API Auth expose : GET /users/username/:username
-      const { data: followingUser } = await axios.get(
-        `${AUTH_SERVICE_URL}/auth/users/username/${followingUsername}`,
-        {
-          headers: { Authorization: req.headers.authorization },
-        }
-      );
+    follower = req.params.username;
 
-      if (!followingUser) {
-        return res
-          .status(404)
-          .json({ message: "Utilisateur à suivre introuvable chez Auth" });
-      }
+    following = req.params.usernameToFollow;
 
-      // 4. Créer la demande
-      const newFollower = new FollowerModel({
-        follower: followerId,
-        following: followingUser.userId || followingUser._id,
-        accepted: false,
-      });
 
-      await newFollower.save();
-      return res.status(201).json({
-        message: "Demande de suivi créée",
-        followerId: newFollower._id,
-      });
-    } catch (err) {
-      console.error("createfollower failed via Auth API:", err);
-      if (err.response) {
-        // Propagation de l'erreur depuis Auth
-        return res.status(err.response.status).json(err.response.data);
-      }
-      return res.status(500).json({ message: "Server error: " + err });
+    if (!follower || !following) {
+      return res.status(400).json({ message: "Missing follower or following" });
     }
-  },
-];
+
+    // Vérifier si la relation existe déjà
+    const exists = await FollowerModel.findOne({ follower, following });
+    if (exists) {
+      return res.status(409).json({ message: "Follow request already exists" });
+    }
+
+    const newfollower = new FollowerModel({
+      follower,
+      following,
+      accepted: false,
+    });
+
+    await newfollower.save();
+
+    res.status(201).json({
+      message: "follower created successfully",
+      followerId: newfollower._id,
+    });
+  } catch (err) {
+    console.error("follower creation failed", err);
+    res.status(500).json({ message: "Server error :" + err });
+  }
+};
+
+
 
 /** GET ALL followers */
 exports.getAllfollowers = async (req, res) => {
@@ -122,6 +109,33 @@ exports.deletefollower = async (req, res) => {
   }
 };
 
+exports.unfollowUser = async (req, res) => {
+  try {
+    const { username, usernameToUnfollow } = req.params;
+
+    // Vérifier si l'utilisateur à unfollow existe
+    const userToUnfollow = await FollowerModel.findOne({
+      follower: username,
+      following: usernameToUnfollow,
+    });
+
+    if (!userToUnfollow) {
+      return res.status(404).json({ message: "User to unfollow not found" });
+    }
+
+    // Supprimer la relation de suivi
+    await FollowerModel.deleteOne({
+      follower: username,
+      following: usernameToUnfollow,
+    });
+
+    res.status(200).json({ message: "Successfully unfollowed user" });
+  } catch (err) {
+    console.error("Failed to unfollow user", err);
+    res.status(500).json({ message: "Server error: " + err });
+  }
+};
+
 /** UPDATE (accept request) */
 exports.updatefollower = async (req, res) => {
   try {
@@ -143,3 +157,4 @@ exports.updatefollower = async (req, res) => {
     res.status(500).json({ message: "Server error: " + err });
   }
 };
+

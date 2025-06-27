@@ -14,6 +14,7 @@ import {
 } from "@/store/profileSlice";
 import Post from "@/components/post";
 import { useParams } from "next/navigation";
+import { followUser, unfollowUser } from "@/utils/api"; // Assurez-vous que ces actions existent dans votre slice
 
 export default function ProfileCard() {
   // recupere le username passe dans l'URL
@@ -30,9 +31,16 @@ export default function ProfileCard() {
   const userPosts = useSelector((s) => s.profile.posts || []);
   const userCommentedPosts = useSelector((s) => s.profile.comments || []);
   const userLikedPosts = useSelector((s) => s.profile.likes || []);
+  
+  const {
+    followers,
+    followings,
+    followersCount,
+    followingsCount
+  } = useSelector((state) => state.profile);
 
-  const [followersCount, setFollowersCount] = useState(0);
-  const [followingsCount, setFollowingsCount] = useState(0);
+  const [isFollowing, setIsFollowing] = useState(false);
+
 
   useEffect(() => {
     if (!isAuth) {
@@ -44,15 +52,28 @@ export default function ProfileCard() {
     dispatch(fetchPostsByUser(username));
     dispatch(fetchPostsCommentedByUser(username));
     dispatch(fetchPostsLikedByUser(username));
-    dispatch(fetchUsersFollowers(username)).then((action) => {
-      if (action.payload) {
-        setFollowersCount(action.payload.followersCount || 0);
-        setFollowingsCount(action.payload.followingsCount || 0);
-      }
-    });
+    dispatch(fetchUsersFollowers(username));
+
   }, [isAuth, dispatch, router, username]);
+  console.log("following ?", isFollowing);
 
   if (!isAuth) return <p>{t("loading")}</p>;
+
+  if(followers.includes(loggedUser.username)) {
+    setIsFollowing(true);
+  }
+
+  console.log("User data:", user);
+  console.log("Logged user:", loggedUser);
+  console.log("User posts:", userPosts);
+  console.log("User commented posts:", userCommentedPosts);
+  console.log("User liked posts:", userLikedPosts);
+  console.log("Followers:", followers);
+  console.log("Followings:", followings);
+  console.log("Followers count:", followersCount);
+  console.log("Followings count:", followingsCount);
+  console.log("Is following:", isFollowing);
+
 
   // Onglets Posts, Comments, Likes
   const [activeTab, setActiveTab] = useState("posts");
@@ -112,11 +133,11 @@ export default function ProfileCard() {
       );
     }
     else{
-      if (user?.isFollowing) {
+      if (isFollowing) {
         return (
           <button
             className="px-3 py-1 text-sm border border-gray-400 rounded-full hover:bg-gray-100 text-black"
-            onClick={() => dispatch({ type: 'UNFOLLOW_USER', payload: user.username })}
+            onClick={() => {unfollowUser(loggedUser.username, user.username).then(() => {setIsFollowing(false); dispatch(fetchUsersFollowers(username));})}}
           >
             {t("unfollow")}
           </button>
@@ -125,7 +146,7 @@ export default function ProfileCard() {
       return (
         <button
           className="px-3 py-1 text-sm border border-gray-400 rounded-full hover:bg-gray-100 text-black"
-          onClick={() => dispatch({ type: 'FOLLOW_USER', payload: user.username })}
+          onClick={() => {followUser(loggedUser.username, user.username).then(() => {setIsFollowing(true); dispatch(fetchUsersFollowers(username));})}}
         >
           {t("follow")}
         </button>

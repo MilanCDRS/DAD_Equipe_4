@@ -59,9 +59,9 @@ export const fetchPostsLikedByUser = createAsyncThunk(
 
 export const fetchUsersFollowers = createAsyncThunk(
   "follower/fetchByUser",
-  async (username, { rejectWithValue }) => {
+  async (profileUsername, { rejectWithValue }) => {
     try {
-      const data = await getUsersFollowers(username);
+      const data = await getUsersFollowers(profileUsername);
       return data;
     } catch (err) {
       return rejectWithValue(err.response?.data || err.message);
@@ -75,6 +75,8 @@ const initialState = {
   posts: [],
   comments: [],
   likes: [],
+  followers: [],          // 👈 ajouté
+  followings: [],         // 👈 ajouté
   followersCount: 0,
   followingsCount: 0,
   status: "idle",
@@ -154,6 +156,8 @@ const profileSlice = createSlice({
       })
       .addCase(fetchUsersFollowers.fulfilled, (state, action) => {
         state.status = "succeeded";
+        state.followers = action.payload.followers || [];               // 👈
+        state.followings = action.payload.followings || [];             // 👈
         state.followersCount = action.payload.followersCount || 0;
         state.followingsCount = action.payload.followingsCount || 0;
       })

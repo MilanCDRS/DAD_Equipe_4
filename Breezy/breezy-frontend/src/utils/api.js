@@ -11,17 +11,28 @@ const apiClient = axios.create({
 // sur 401/403, tenter un refresh une fois
 apiClient.interceptors.response.use(
   (res) => res,
-  async (err) => {
-    // si 401 ou 403 sur accessToken expiré
-    if (err.response?.status === 401 || err.response?.status === 403) {
-      // tente un refresh
-      await apiClient.post("/auth/refresh-token");
-      // puis refait la requête initiale
-      return apiClient(err.config);
+  async (error) => {
+    const orig = error.config;
+    const status = error.response?.status;
+
+    // Ne retry ni sur refresh-token, ni authenticate, ni logout
+    if (
+      orig.url?.includes("/auth/refresh-token") ||
+      orig.url?.includes("/auth/authenticate") ||
+      orig.url?.includes("/auth/logout")
+    ) {
+      return Promise.reject(error);
     }
-    return Promise.reject(err);
+
+    if ((status === 401 || status === 403) && !orig._retry) {
+      orig._retry = true;
+      await apiClient.post("/auth/refresh-token");
+      return apiClient(orig);
+    }
+    return Promise.reject(error);
   }
 );
+
 
 /**
  * POST /auth/login
@@ -68,7 +79,7 @@ export const getAllUsers = async ({
  * API PUBLIC
  */
 export const getUsersFollowers = async (username) => 
-  apiClient.get(`/follower/user/${username}`);
+  apiClient.get(`/follower/user/${username}`).then((res) => res.data);
 
 export const getAllPosts = () =>
   apiClient.get("/posts").then((res) => res.data);
@@ -90,5 +101,13 @@ export const getPostsCommentedByUser = (username) =>
 
 export const getPostsLikedByUser = (username) =>  
   apiClient.get(`/posts/liked/${username}`).then((res) => res.data);
+
+export const followUser = (username, usernameToFollow) =>
+  apiClient.post(`/follower/${username}/${usernameToFollow}`)
+    .then((res) => res.data);
+
+export const unfollowUser = (username, usernameToUnfollow) =>
+  apiClient.delete(`/follower/${username}/${usernameToUnfollow}`)
+    .then((res) => res.data);
 
 export default apiClient;
