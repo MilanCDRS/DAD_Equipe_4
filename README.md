@@ -4,6 +4,6 @@ cd breezy
 docker compose build
 docker compose up
 
-localhost:8080/register → via NGINX
+http://localhost:9001/ -> créer le bucket avatars
 
-localhost:8080/private → protégée
+Dans docker -> relancer la gateway 
