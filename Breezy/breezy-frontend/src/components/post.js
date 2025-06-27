@@ -4,12 +4,16 @@ import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toggleLike, postComment } from "@/store/postsSlice";
 import { useRouter } from "next/navigation";
+import CommentThread from "./CommentThread";
+import { useTranslation } from "@/app/lib/TranslationProvider";
+
 
 export default function Post({ post }) {
   const dispatch = useDispatch();
   const currentUser = useSelector((s) => s.auth.user);
   const isAuth = useSelector((s) => s.auth.isAuthenticated);
   const router = useRouter();
+  const {t} = useTranslation();
 
   // on extrait depuis le store, pour garder la source de vérité
   const storePost =
@@ -34,16 +38,18 @@ export default function Post({ post }) {
       .finally(() => setIsLiking(false));
   };
 
-  const handleAddComment = () => {
+  const handleAddComment = (parentId = null, text = commentText) => {
     if (!isAuth) return alert("Connecte-toi pour commenter");
-    if (!commentText.trim()) return;
+        if (!text.trim()) return;
     setIsCommenting(true);
-    dispatch(postComment({ postId: post._id, text: commentText }))
+    dispatch(postComment({ postId: post._id, text, parentCommentId: parentId }))
       .unwrap()
-      .then(() => setCommentText(""))
+        .then(() => {
+          if (!parentId) setCommentText("");
+        })
       .catch(() => alert("Erreur lors de l'ajout du commentaire !"))
       .finally(() => setIsCommenting(false));
-  };
+    };
 
   const handleProfile = (username) => {
     console.log("handleProfile called on posts");
@@ -128,71 +134,39 @@ export default function Post({ post }) {
       </div>
       {/* Section Commentaires */}
       {showComments && (
-        <div className="mt-4">
-          {/* Liste */}
-          <div className="space-y-3 mb-3">
-            {comments.length === 0 && (
-              <div className="text-gray-400 text-sm">Aucun commentaire</div>
-            )}
-            {comments.map((com, idx) => (
-              <div key={idx} className="flex items-start gap-2">
-                <div className="w-7 h-7 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
-                  {com.user?.avatarUrl ? (
-                    <img
-                      src={com.user.avatarUrl}
-                      alt="avatar"
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <span className="block w-full h-full" />
-                  )}
-                </div>
-                <div className="flex-1">
-                  {/* PATCH : nom d’utilisateur, puis fallback username */}
-                  <div className="text-sm font-medium text-black">
-                    {com.user?.displayName ||
-                      com.user?.username ||
-                      "Utilisateur"}
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    @{com.user?.username}
-                  </div>
-                  {/* PATCH : commentaire toujours noir */}
-                  <div className="text-black text-sm">{com.text}</div>
-                  <div className="text-xs text-gray-400">
-                    {com.createdAt
-                      ? new Date(com.createdAt).toLocaleDateString("fr-FR")
-                      : ""}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-          {/* Formulaire ajout */}
-          <div className="flex gap-2 items-center">
-            <input
-              type="text"
-              value={commentText}
-              onChange={(e) => setCommentText(e.target.value)}
-              className="flex-1 border rounded px-3 py-1 text-sm text-black"
-              placeholder="Ajouter un commentaire…"
-              disabled={!isAuth || isCommenting}
-              maxLength={200}
-            />
-            <button
-              onClick={handleAddComment}
-              disabled={isCommenting || !commentText.trim()}
-              className={`rounded px-3 py-1 text-white text-sm font-medium transition ${
-                commentText.trim() && !isCommenting
-                  ? "bg-blue-500 hover:bg-blue-600"
-                  : "bg-blue-100 text-blue-200 cursor-not-allowed"
-              }`}
-            >
-              Envoyer
-            </button>
-          </div>
-        </div>
+  <div className="mt-4">
+    <div className="space-y-3 mb-3">
+      {comments.length === 0 && (
+        <div className="text-gray-400 text-sm">Aucun commentaire</div>
       )}
+      {comments.map((comment, idx) => (
+        <CommentThread key={idx} comment={comment} parentId={post._id} onReply={handleAddComment} />
+      ))}
+    </div>
+    <div className="flex gap-2 items-center">
+      <input
+        type="text"
+        value={commentText}
+        onChange={(e) => setCommentText(e.target.value)}
+        className="flex-1 border rounded px-3 py-1 text-sm text-black"
+        placeholder="Ajouter un commentaire…"
+        disabled={!isAuth || isCommenting}
+        maxLength={200}
+      />
+      <button
+        onClick={() => handleAddComment(null, commentText)}
+        disabled={isCommenting || !commentText.trim()}
+        className={`rounded px-3 py-1 text-white text-sm font-medium transition ${
+          commentText.trim() && !isCommenting
+            ? "bg-blue-500 hover:bg-blue-600"
+            : "bg-blue-100 text-blue-200 cursor-not-allowed"
+        }`}
+      >
+        {t("Envoyer")}
+      </button>
+    </div>
+  </div>
+)}
     </div>
   );
 }

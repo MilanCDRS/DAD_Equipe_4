@@ -59,9 +59,14 @@ export default function ProfileCard() {
 
   if (!isAuth) return <p>{t("loading")}</p>;
 
-  if(followers.includes(loggedUser.username)) {
-    setIsFollowing(true);
-  }
+  // Synchronize isFollowing state with followers list
+  useEffect(() => {
+    if (followers && loggedUser && followers.includes(loggedUser.username)) {
+      setIsFollowing(true);
+    } else {
+      setIsFollowing(false);
+    }
+  }, [followers, loggedUser]);
 
   console.log("User data:", user);
   console.log("Logged user:", loggedUser);

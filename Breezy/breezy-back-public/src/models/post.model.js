@@ -7,7 +7,8 @@ const commentSchema = new mongoose.Schema({
     avatarUrl: String
   },
   text: String,
-  createdAt: { type: Date, default: Date.now }
+  createdAt: { type: Date, default: Date.now },
+  replies: [{ type: mongoose.Schema.Types.Mixed, default: [] }]
 });
 
 const postSchema = new mongoose.Schema({

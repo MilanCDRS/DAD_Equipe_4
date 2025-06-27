@@ -6,7 +6,7 @@ export default function () {
       {" "}
       
       <NotImplementedComponent>
-        NOTIFICATIONS
+        MESSAGES 
       </NotImplementedComponent>
     </div>
   );
