@@ -8,6 +8,8 @@ const {
   createPost,
   toggleLike,
   addComment,
+  fetchPostsCommentedByUser,
+  fetchPostsLikedByUser
 } = require("../controller/posts.controller");
 const { requireAuth } = require("../middlewares/auth.middleware");
 
@@ -23,19 +25,7 @@ router.get("/user/:username", getPostsByUser);
 router.post("/", requireAuth, upload.single("image"), createPost);
 router.put("/:id/like", requireAuth, toggleLike);
 router.post("/:id/comments", requireAuth, addComment);
-
-// Recuperer les posts commentés par un user 
-router.get('/posts/commented/user/:username', async (req, res) => {
-  const { username } = req.params;
-  const posts = await Post.find({ 'comments.user.username': username }).sort({ createdAt: -1 });
-  res.json(posts);
-});
-
-// Recuperer les posts likés par un user
-router.get('/posts/liked/user/:username', async (req, res) => {
-  const { username } = req.params;
-  const posts = await Post.find({ likes: username }).sort({ createdAt: -1 });
-  res.json(posts);
-});
+router.get(`/commented/:username`, requireAuth, fetchPostsCommentedByUser);
+router.get(`/liked/:username`, requireAuth, fetchPostsLikedByUser);
 
 module.exports = router;

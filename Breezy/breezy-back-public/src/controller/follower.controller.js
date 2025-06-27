@@ -91,45 +91,18 @@ exports.getFollowersAndFollowingsByUsername = [
   requireAuth,
   async (req, res) => {
     try {
-      const { username } = req.params;
+      const username = req.params.username;
 
-      // 1. Charger l'utilisateur pour récupérer son ID
-      const { data: user } = await axios.get(
-        `${AUTH_SERVICE_URL}/auth/users/username/${username}`,
-        {
-          headers: { Authorization: req.headers.authorization },
-        }
-      );
-      if (!user) {
-        return res
-          .status(404)
-          .json({ message: "Utilisateur introuvable chez Auth" });
-      }
-      const userId = user.userId || user._id;
+      const followers = await FollowerModel.find({ following: username }).distinct("follower");
+      const followings = await FollowerModel.find({ follower: username }).distinct("following");
 
-      // 2. Récupérer tous ceux qui suivent cet user
-      const followersData = await FollowerModel.find({
-        following: userId,
-      }).lean();
-      const followers = followersData.map((f) => f.follower);
-
-      // 3. Récupérer tous ceux que l'utilisateur suit
-      const followingsData = await FollowerModel.find({
-        follower: userId,
-      }).lean();
-      const followings = followingsData.map((f) => f.following);
-
-      res.status(200).json({
+      res.json({
         followers,
         followings,
         followersCount: followers.length,
         followingsCount: followings.length,
       });
     } catch (err) {
-      console.error("Failed to fetch followers/followings via Auth API:", err);
-      if (err.response) {
-        return res.status(err.response.status).json(err.response.data);
-      }
       res.status(500).json({ message: "Server error: " + err });
     }
   },
