@@ -8,6 +8,8 @@ const {
   createPost,
   toggleLike,
   addComment,
+  fetchPostsCommentedByUser,
+  fetchPostsLikedByUser
 } = require("../controller/posts.controller");
 const { requireAuth } = require("../middlewares/auth.middleware");
 
@@ -23,5 +25,6 @@ router.get("/user/:username", getPostsByUser);
 router.post("/", requireAuth, upload.single("image"), createPost);
 router.put("/:id/like", requireAuth, toggleLike);
 router.post("/:id/comments", requireAuth, addComment);
-
+router.get(`/commented/:username`, requireAuth, fetchPostsCommentedByUser);
+router.get(`/liked/:username`, requireAuth, fetchPostsLikedByUser);
 module.exports = router;

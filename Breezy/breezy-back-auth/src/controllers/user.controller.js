@@ -62,15 +62,15 @@ exports.getAllUsers = async (req, res) => {
 };
 
 /* GET */
-exports.getUserById = async (req, res) => {
+exports.getUserByUsername = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).select("-passwordHash");
+    const user = await User.findOne({ username: req.params.username }).select("-passwordHash");
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ message: "User not found !" });
     }
     res.status(200).json(user);
   } catch (err) {
-    console.error("Failed to update user", err);
+    console.error("Failed to fetch user by username", err);
     res.status(500).json({ message: "Server error :" + err });
   }
 };

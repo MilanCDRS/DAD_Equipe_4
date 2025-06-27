@@ -103,3 +103,36 @@ exports.addComment = async (req, res) => {
       .json({ error: "Erreur serveur lors de l’ajout du commentaire" });
   }
 };
+
+// GET /api/posts/commented/:username
+exports.fetchPostsCommentedByUser = async (req, res) => {
+  try {
+    const { username } = req.params;
+    const posts = await Post.find({ "comments.user.username": username })
+      .sort({ createdAt: -1 });
+
+    res.status(200).json(posts);
+  } catch (err) {
+    console.error("Erreur fetch posts commentés par user :", err);
+    res.status(500).json({
+      error: "Erreur serveur lors de la récupération des posts commentés",
+    });
+  }
+};
+
+// GET /api/posts/liked/:username
+exports.fetchPostsLikedByUser = async (req, res) => {
+  try {
+    const { username } = req.params;
+    const posts = await Post.find({ likes: username })
+      .sort({ createdAt: -1 });
+
+    res.status(200).json(posts);
+  } catch (err) {
+    console.error("Erreur fetch posts likés par user :", err);
+    res.status(500).json({
+      error: "Erreur serveur lors de la récupération des posts likés",
+    });
+  }
+};
+

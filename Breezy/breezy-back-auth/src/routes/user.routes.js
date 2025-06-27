@@ -26,10 +26,10 @@ router.get("/users/username/:username", async (req, res) => {
 // -- PRIVATE --
 
 // Liste des users
-router.get("/users", requireAuth, userController.getAllUsers);
+router.get("/", requireAuth, userController.getAllUsers);
 
-// Récupérer un user par ID
-router.get("/:userId", requireAuth, userController.getUserById);
+// Récupérer un user par username
+router.get("/:username", requireAuth, userController.getUserByUsername);
 
 // Mettre à jour son propre profil
 router.patch(

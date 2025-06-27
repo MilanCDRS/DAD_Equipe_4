@@ -8,18 +8,6 @@ const apiClient = axios.create({
 });
 
 // On injecte automatiquement le token depuis le cookie, on exclut /auth/register & /auth/login puis on ajoute l’Authorization
-apiClient.interceptors.response.use(
-  (res) => res,
-  async (err) => {
-    if (err.response?.status === 401) {
-      // on tente un refresh (qui renvoie un nouveau accessToken en cookie HttpOnly)
-      await apiClient.post("/auth/refresh-token");
-      // on réessaie la requête initiale
-      return apiClient(err.config);
-    }
-    return Promise.reject(err);
-  }
-);
 // sur 401/403, tenter un refresh une fois
 apiClient.interceptors.response.use(
   (res) => res,
@@ -53,8 +41,8 @@ export const registerUser = async (userData) => {
   return response.data;
 };
 
-export const getUserById = async (userId) => {
-  const response = await apiClient.get(`/auth/users/${userId}`);
+export const getUserByUsername = async (username) => {
+  const response = await apiClient.get(`/auth/users/${username}`);
   return response.data;
 };
 
@@ -79,10 +67,8 @@ export const getAllUsers = async ({
 /**
  * API PUBLIC
  */
-export const getUsersFollowers = async (username) => {
-  const response = await apiClient.post(`public/follower/user/${username}`);
-  return response.data;
-};
+export const getUsersFollowers = async (username) => 
+  apiClient.get(`/follower/user/${username}`);
 
 export const getAllPosts = () =>
   apiClient.get("/posts").then((res) => res.data);
@@ -95,5 +81,14 @@ export const likePost = (postId) =>
 
 export const addComment = (postId, text) =>
   apiClient.post(`/posts/${postId}/comments`, { text }).then((res) => res.data);
+
+export const getPostsByUser = (username) =>
+  apiClient.get(`/posts/user/${username}`).then((res) => res.data);
+
+export const getPostsCommentedByUser = (username) =>  
+  apiClient.get(`/posts/commented/${username}`).then((res) => res.data);
+
+export const getPostsLikedByUser = (username) =>  
+  apiClient.get(`/posts/liked/${username}`).then((res) => res.data);
 
 export default apiClient;

@@ -1,104 +1,137 @@
 "use client";
-import React, { useState } from "react";
-import apiClient from "@/utils/api";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import defaultAvatar from "@/app/images/defaultAvatar.png";
-import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "@/app/lib/TranslationProvider";
-import { getUserById, getUsersFollowers } from "@/utils/api";
+import {
+  fetchPostsByUser,
+  fetchPostsCommentedByUser,
+  fetchPostsLikedByUser,
+  fetchProfile,
+  fetchUsersFollowers,
+} from "@/store/profileSlice";
 import Post from "@/components/post";
+import { useParams } from "next/navigation";
 
 export default function ProfileCard() {
+  // recupere le username passe dans l'URL
+  // Utilisation de useParams pour obtenir le paramètre d'URL [username]
+  const { username } = useParams();
   const dispatch = useDispatch();
   const router = useRouter();
   const { t } = useTranslation();
 
   const isAuth = useSelector((s) => s.auth.isAuthenticated);
-  const user = useSelector((s) => s.auth.user);
+  const loggedUser = useSelector((s) => s.auth.user);
+  const user = useSelector((s) => s.profile.user);
 
-  useEffect(() => {
-    if (!isAuth || !user) router.push("/auth/login");
-  }, [isAuth, router]);
-
-  if (!isAuth) return <p>{t("loading")}</p>;
-
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const res = await axios.get(`/api/user/${user?.userId}`);
-        if (res.data) {
-          user.bio = res.data.bio || "";
-          user.avatar = res.data.avatar || "";
-        }
-      } catch (error) {
-        console.error("Error fetching user profile:", error);
-      }
-    };
-    if (user?.userId) fetchProfile();
-  }, [user?.userId]);
+  const userPosts = useSelector((s) => s.profile.posts || []);
+  const userCommentedPosts = useSelector((s) => s.profile.comments || []);
+  const userLikedPosts = useSelector((s) => s.profile.likes || []);
 
   const [followersCount, setFollowersCount] = useState(0);
   const [followingsCount, setFollowingsCount] = useState(0);
 
-  const fetchFollowersData = async (username) => {
-    try {
-      const res = await axios.get(`/api/follower/user/${username}`);
-      setFollowersCount(res.data.followersCount || 0);
-      setFollowingsCount(res.data.followingsCount || 0);
-    } catch (error) {
-      console.error("Error fetching user followers:", error);
+  useEffect(() => {
+    if (!isAuth) {
+      router.replace("/auth/login");
+      return;
     }
-  };
 
-  useEffect(() => {
-    if (user?.username) fetchFollowersData(user.username);
-  }, [user?.username]);
-
-  // recupération des posts, commentaires et likes
-  const [posts, setPosts] = useState([]);
-  const [comments, setComments] = useState([]);
-  const [likes, setLikes] = useState([]);
-
-  useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        const res = await axios.get(`/api/posts/user/${user?.username}`);
-        setPosts(res.data || []);
-      } catch (error) {
-        console.error("Error fetching user posts:", error);
+    dispatch(fetchProfile(username));
+    dispatch(fetchPostsByUser(username));
+    dispatch(fetchPostsCommentedByUser(username));
+    dispatch(fetchPostsLikedByUser(username));
+    dispatch(fetchUsersFollowers(username)).then((action) => {
+      if (action.payload) {
+        setFollowersCount(action.payload.followersCount || 0);
+        setFollowingsCount(action.payload.followingsCount || 0);
       }
-    };
-    if (user?.username) fetchPosts();
-  }, [user?.username]);
+    });
+  }, [isAuth, dispatch, router, username]);
 
+  if (!isAuth) return <p>{t("loading")}</p>;
+
+  // Onglets Posts, Comments, Likes
   const [activeTab, setActiveTab] = useState("posts");
 
   const renderTabContent = () => {
     switch (activeTab) {
-      case "posts":
-        return posts.length === 0 ? (
-          <div className="text-center text-black py-10">
-            Aucun post pour le moment
-          </div>
-        ) : (
-          posts.map((post) => (
-            <Post key={post._id} post={post} currentUser={user} />
-          ))
+      case 'posts':
+        return (
+          userPosts.length === 0 ? (
+            <div className="text-center text-black py-10">
+              Aucun post pour le moment
+            </div>
+          ) : (
+            userPosts.map((post) => (
+              <Post key={post._id} post={post} currentUser={user} />
+            ))
+          )
         );
-      case "comments":
-        return <p>Voici les commentaires...</p>;
-      case "likes":
-        return <p>Voici les likes...</p>;
+      case 'comments':
+        return (
+          userCommentedPosts.length === 0 ? (
+            <div className="text-center text-black py-10">
+              Aucun post commenté pour le moment
+            </div>
+          ) : (
+            userCommentedPosts.map((post) => (
+              <Post key={post._id} post={post} currentUser={user} />
+            ))
+          )
+        );
+      case 'likes':
+        return (
+          userLikedPosts.length === 0 ? (
+            <div className="text-center text-black py-10">
+              Aucun post liké pour le moment
+            </div>
+          ) : (
+            userLikedPosts.map((post) => (
+              <Post key={post._id} post={post} currentUser={user} />
+            ))
+          )
+        );
       default:
         return null;
     }
   };
 
-  const handleProfileSettings = () => {
-    router.push("/profilePages/profileSettings");
-  };
+  const renderSideButton = () => {
+    if (loggedUser.username === username) {
+      return (
+        <button
+          className="px-3 py-1 text-sm border border-gray-400 rounded-full hover:bg-gray-100 text-black"
+          onClick={() => router.push("/profilePages/profileSettings")}
+        >
+          {t("editProfile")}
+        </button>
+      );
+    }
+    else{
+      if (user?.isFollowing) {
+        return (
+          <button
+            className="px-3 py-1 text-sm border border-gray-400 rounded-full hover:bg-gray-100 text-black"
+            onClick={() => dispatch({ type: 'UNFOLLOW_USER', payload: user.username })}
+          >
+            {t("unfollow")}
+          </button>
+        );
+      }
+      return (
+        <button
+          className="px-3 py-1 text-sm border border-gray-400 rounded-full hover:bg-gray-100 text-black"
+          onClick={() => dispatch({ type: 'FOLLOW_USER', payload: user.username })}
+        >
+          {t("follow")}
+        </button>
+      );
+    }
+  }
 
   return (
     <div className="w-screen h-screen bg-gray-100">
@@ -143,12 +176,9 @@ export default function ProfileCard() {
                 </h1>
                 <p className="text-gray-500">@{user?.username}</p>
               </div>
-              <button
-                className="px-3 py-1 text-sm border border-gray-400 rounded-full hover:bg-gray-100 text-black"
-                onClick={handleProfileSettings}
-              >
-                {t("editProfile")}
-              </button>
+              <div>
+                {renderSideButton()}
+              </div>
             </div>
 
             <p className="mt-2 text-sm text-gray-600">{user?.bio}</p>
