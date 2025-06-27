@@ -33,7 +33,7 @@ export default function SettingsProfilePage() {
     };
 
     await updateProfile(payload);
-    router.push("/profilePages/profile");
+    router.push("/profilePages/profile/" + user.username);
 
     alert(t("profileCompleted") || "Profile completed!");
   };

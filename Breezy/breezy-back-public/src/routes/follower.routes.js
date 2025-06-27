@@ -8,14 +8,12 @@ const router = express.Router();
 const followerController = require("../controller/follower.controller");
 const { requireAuth } = require("../middlewares/auth.middleware");
 
+// Public :
+// Ensure the controller method exists and is exported correctly
+router.get("/user/:username", requireAuth, followerController.getFollowersAndFollowingsByUsername);
+
 // Public
 router.get("/", followerController.getAllfollowers);
-
-// Public :
-router.get(
-  "/user/:username",
-  followerController.getFollowersAndFollowingsByUsername
-);
 
 // Protégé
 router.post("/", requireAuth, followerController.createfollower);
@@ -23,9 +21,9 @@ router.post("/", requireAuth, followerController.createfollower);
 // Protégé
 router.patch("/:id", requireAuth, followerController.updatefollower);
 
-// Protégé
 router.delete("/:id", requireAuth, followerController.deletefollower);
 
-router.delete("/:id", followerController.deletefollower);
+// Remove duplicate route registration to avoid conflicts
+// router.delete("/:id", followerController.deletefollower);
 
 module.exports = router;

@@ -41,8 +41,8 @@ export const registerUser = async (userData) => {
   return response.data;
 };
 
-export const getUserById = async (userId) => {
-  const response = await apiClient.get(`/auth/users/${userId}`);
+export const getUserByUsername = async (username) => {
+  const response = await apiClient.get(`/auth/users/${username}`);
   return response.data;
 };
 
@@ -72,10 +72,8 @@ export const getAllUsers = async ({
 /**
  * API PUBLIC
  */
-export const getUsersFollowers = async (username) => {
-  const response = await apiClient.post(`public/follower/user/${username}`);
-  return response.data;
-};
+export const getUsersFollowers = async (username) => 
+  apiClient.get(`/follower/user/${username}`);
 
 export const getAllPosts = () =>
   apiClient.get("/posts").then((res) => res.data);
@@ -94,4 +92,13 @@ export const addComment = (postId, text, parentCommentId = null) =>
 export const logout = () => {
   return apiClient.post("/auth/logout");
 };
+export const getPostsByUser = (username) =>
+  apiClient.get(`/posts/user/${username}`).then((res) => res.data);
+
+export const getPostsCommentedByUser = (username) =>  
+  apiClient.get(`/posts/commented/${username}`).then((res) => res.data);
+
+export const getPostsLikedByUser = (username) =>  
+  apiClient.get(`/posts/liked/${username}`).then((res) => res.data);
+
 export default apiClient;
